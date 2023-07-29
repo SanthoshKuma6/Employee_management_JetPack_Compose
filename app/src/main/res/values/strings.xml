@@ -1,0 +1,31 @@
+<resources>
+    <string name="app_name">EmployeeManagement</string>
+    //Additional
+    <string name="login_title">Employee Management</string>
+    <string name="login">Login</string>
+    <string name="login_enter">Enter your credential to login</string>
+    <string name="email_text">Email Address</string>
+    <string name="title_password">Password</string>
+    <string name="password_text">Enter Password</string>
+    <string name="hide_password">Hide password</string>
+    <string name="show_password">Show Password</string>
+    <string name="login_button">Login</string>
+    <string name="title_activity_signup">SignupActivity</string>
+    <string name="employee_title">Employee Name</string>
+    <string name="enter_employee_name">Enter Employee Name </string>
+    <string name="enter_department_name">Department </string>
+    <string name="choose_department_name">Choose Department </string>
+    <string name="email_address">Email Address </string>
+    <string name="enter_email_address">Enter Email Address </string>
+    <string name="enter_contact_number_title">Enter Contact Number </string>
+    <string name="enter_contact_number">Enter Contact Number </string>
+    <string name="dob_title">Date of Birth </string>
+    <string name="dob">Date of Birth </string>
+    <string name="blood_group_title">Blood Group </string>
+    <string name="blood_group">Enter Blood Group </string>
+    <string name="address_title">Address </string>
+    <string name="address">Enter Address </string>
+    <string name="title_activity_add_employee">AddEmployeeActivity</string>
+    <string name="title_activity_profile_view">ProfileViewActivity</string>
+    <string name="back_arrow">Back</string>
+</resources>
