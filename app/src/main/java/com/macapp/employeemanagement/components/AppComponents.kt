@@ -1,10 +1,14 @@
 package com.macapp.employeemanagement.components
 
 import android.content.Intent
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -39,6 +43,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -64,14 +69,14 @@ import com.macapp.employeemanagement.ui.theme.componentShapes
 
 @Composable
 fun NormalTextComponent(value: String) {
-    val bold=FontFamily(Font(R.font.gothica1_regular))
+    val bold = FontFamily(Font(R.font.gothica1_regular))
 
     Text(
         text = value, modifier = Modifier
             .padding(top = 10.dp)
             .fillMaxWidth()
             .heightIn(min = 40.dp), style = TextStyle(
-            fontSize = 24.sp, fontWeight = FontWeight.Normal, fontStyle = FontStyle.Normal
+            fontSize = 20.sp, fontWeight = FontWeight.Normal, fontStyle = FontStyle.Normal
         ), color = Color.Black, textAlign = TextAlign.Center, fontFamily = bold
     )
 }
@@ -79,11 +84,14 @@ fun NormalTextComponent(value: String) {
 
 @Composable
 fun Login(value: String) {
-    val bold=FontFamily(Font(R.font.gothica1_regular))
+    val bold = FontFamily(Font(R.font.gothica1_regular))
 
     Text(
-        text = value, modifier = Modifier.padding(top = 40.dp), style = TextStyle(
-            fontStyle = FontStyle.Normal, fontWeight = FontWeight.Bold, fontSize = 25.sp, fontFamily = bold
+        text = value, modifier = Modifier.padding(top = 37.dp), style = TextStyle(
+            fontStyle = FontStyle.Normal,
+            fontWeight = FontWeight.Bold,
+            fontSize = 34.sp,
+            fontFamily = bold
         )
     )
 
@@ -102,12 +110,12 @@ fun LoginCredential(value: String) {
 
 @Composable
 fun NormalEmailText(value: String) {
-    val bold=FontFamily(Font(R.font.gothica1_regular))
+    val bold = FontFamily(Font(R.font.gothica1_regular))
 
     Text(
         text = value, modifier = Modifier.padding(top = 20.dp), style = TextStyle(
             fontStyle = FontStyle.Normal,
-            fontSize = 14.sp,
+            fontSize = 12.sp,
             fontWeight = FontWeight.Normal, fontFamily = bold
         )
 
@@ -120,9 +128,9 @@ fun TitleImageComponent() {
         modifier = Modifier
             .size(400.dp, 140.dp)
             .fillMaxWidth()
-            .heightIn(min = 40.dp)
+            .heightIn(min = 97.dp)
             .padding(top = 50.dp),
-        painter = painterResource(id = R.drawable.fullsize_emma_watson),
+        painter = painterResource(id = R.drawable.emp_logo),
         contentDescription = "",
         alignment = Alignment.Center
     )
@@ -148,7 +156,7 @@ fun ImageComponent() {
 
 @Composable
 fun MyTextFieldComponent(
-    labelValue: String, painterResources: Painter,onTextSelected: (String) -> Unit
+    labelValue: String, onTextSelected: (String) -> Unit
 ) {
 
     val textValue = remember {
@@ -162,16 +170,12 @@ fun MyTextFieldComponent(
             .padding(top = 10.dp)
             .clip(componentShapes.small),
         placeholder = { Text(text = labelValue) },
-
-//        label = { Text(text = labelValue) },
-
         colors = TextFieldDefaults.outlinedTextFieldColors(
-            focusedBorderColor = Color.Blue,
+            focusedBorderColor = Color.Black,
             focusedLabelColor = Color.Black,
             cursorColor = Color.White,
             backgroundColor = Color.White
         ),
-
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
         singleLine = true,
         maxLines = 1,
@@ -181,18 +185,17 @@ fun MyTextFieldComponent(
             onTextSelected(it)
 
         },
-        leadingIcon = {
-            Icon(painter = painterResources, contentDescription = "")
-        },
+
+
 
         )
 }
 
 @Composable
 fun PasswordTextFieldComponent(
-    labelValue: String, painterResource: Painter,
+    labelValue: String,
     onTextSelected: (String) -> Unit,
-    errorStatus: Boolean = false
+
 ) {
 
     val localFocusManager = LocalFocusManager.current
@@ -209,9 +212,8 @@ fun PasswordTextFieldComponent(
             .fillMaxWidth()
             .clip(componentShapes.small),
         placeholder = { Text(text = labelValue) },
-//        label = { Text(text = labelValue) },
         colors = TextFieldDefaults.outlinedTextFieldColors(
-            focusedBorderColor = Color.Blue,
+            focusedBorderColor = Color.Black,
             focusedLabelColor = Color.Blue,
             cursorColor = Color.Blue,
             backgroundColor = Color.White,
@@ -230,9 +232,6 @@ fun PasswordTextFieldComponent(
         onValueChange = {
             password.value = it
             onTextSelected(it)
-        },
-        leadingIcon = {
-            Icon(painter = painterResource, contentDescription = "")
         },
         trailingIcon = {
 
@@ -254,38 +253,47 @@ fun PasswordTextFieldComponent(
 
         },
         visualTransformation = if (passwordVisible.value) VisualTransformation.None else PasswordVisualTransformation(),
-        isError = !errorStatus
+
     )
 }
 
 
 @Composable
-fun ButtonComponent(value: String,onButtonClicked:()->Unit,) {
+fun ButtonComponent(value: String, onButtonClicked: () -> Unit, isEnabled: Boolean = true) {
     val context = LocalContext.current
 
     Button(
-
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color.Blue)
             .heightIn(48.dp),
-
+        enabled = isEnabled,
+        contentPadding = PaddingValues(),
         onClick = {
             val intent = Intent(context, HomeActivity()::class.java)
             context.startActivity(intent)
 
-//            AppRouter.navigateTo(Screen.HomeScreen)
-        },
+            AppRouter.navigateTo(Screen.MyEmployeeScreen)
+            onButtonClicked.invoke()
+            Toast.makeText(context,"clicked",Toast.LENGTH_LONG).show()
+        }
 
-        )
-
+    )
     {
-        Text(
-            text = value,
-            fontSize = 18.sp,
-            color = Color.White,
-            fontWeight = FontWeight.Bold
-        )
+        Box(
+            modifier = Modifier
+                .background(color = colorResource(id = R.color.blue))
+                .fillMaxWidth()
+                .height(48.dp), contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = value,
+                fontSize = 18.sp,
+                color = Color.White,
+                fontWeight = FontWeight.Bold
+            )
+
+
+        }
 
     }
 
@@ -302,7 +310,7 @@ fun FloatingActionButtonCompose() {
         horizontalAlignment = Alignment.End
     ) {
         FloatingActionButton(shape = MaterialTheme.shapes.large.copy(CornerSize(percent = 50)),
-            backgroundColor = Color.Blue,
+            backgroundColor = colorResource(id = R.color.blue),
             contentColor = Color.White,
             onClick = {
                 val intent = Intent(context, AddEmployeeActivity::class.java)
@@ -317,7 +325,7 @@ fun FloatingActionButtonCompose() {
 
 @Composable
 fun MyEmployeeComponent() {
-    val bold=FontFamily(Font(R.font.gothica1_regular))
+    val bold = FontFamily(Font(R.font.gothica1_regular))
     Row(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
@@ -333,13 +341,12 @@ fun MyEmployeeComponent() {
 
             )
             Spacer(modifier = Modifier.heightIn(10.dp))
-
         }
         androidx.compose.material3.Icon(
-            painter = painterResource(id = R.drawable.ic_search),
+            painter = painterResource(id = R.drawable.search),
             contentDescription = "Search",
             tint = Color.Black,
-            modifier = Modifier.size(20.dp),
+            modifier = Modifier.size(20.dp,20.dp),
         )
 
     }

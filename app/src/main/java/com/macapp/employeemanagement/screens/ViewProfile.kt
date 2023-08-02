@@ -1,12 +1,15 @@
 package com.macapp.employeemanagement.screens
 
 import android.widget.Toast
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material3.Card
@@ -16,6 +19,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
@@ -44,7 +48,7 @@ fun ViewProfile() {
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
-            .padding(top = 10.dp, start = 10.dp)
+            .padding(top = 10.dp, start = 16.dp, end = 15.dp)
     ) {
 
         val leftArrow = createRef()
@@ -69,32 +73,33 @@ fun ViewProfile() {
         val addressTitle = createRef()
         val address = createRef()
         val guideline = createGuidelineFromStart(0.5f)
+        val guidelinetwo = createGuidelineFromStart(0.7f)
         val dividerFour = createRef()
         val initialText = "Back"
         val annotatedString = buildAnnotatedString {
             append(initialText)
         }
-        BackNavigationComponent(
-            value = stringResource(id = R.string.back_arrow), onTextSelected = {
-                AppRouter.navigateTo(Screen.MyEmployeeScreen)
-            }
+//        BackNavigationComponent(
+//            value = stringResource(id = R.string.back_arrow), onTextSelected = {
+//                AppRouter.navigateTo(Screen.MyEmployeeScreen)
+//            }
+//        )
+        Image(
+            painter = painterResource(id = R.drawable.back),
+            contentDescription = "",
+
+            modifier = Modifier.constrainAs(leftArrow) {
+                start.linkTo(parent.start)
+                top.linkTo(parent.top, margin = 20.dp)
+            })
+        Text(text = "Back", modifier = Modifier.constrainAs(back) {
+            start.linkTo(leftArrow.start, margin = 25.dp)
+            top.linkTo(parent.top, margin = 20.dp)
+        }, style = TextStyle(
+
+        ), color = colorResource(id = R.color.blue),
         )
-//        Icon(
-//            painter = painterResource(id = R.drawable.back_arrow_24),
-//            contentDescription = "",
-//
-//            modifier = Modifier.constrainAs(leftArrow) {
-//                start.linkTo(parent.start)
-//                top.linkTo(parent.top, margin = 20.dp)
-//            })
-//        Text(
-//            text = "Back", modifier = Modifier.constrainAs(back) {
-//                start.linkTo(leftArrow.start, margin = 20.dp)
-//                top.linkTo(parent.top, margin = 20.dp)
-//
-//            }, style = TextStyle(
-//                fontWeight = FontWeight.Normal
-//            ),
+
 //
 //
 //
@@ -121,13 +126,13 @@ fun ViewProfile() {
 
 
         Text(
-            text = "Emma Watson", modifier = Modifier.constrainAs(profileName) {
+            text = "Tillie Jackson", modifier = Modifier.constrainAs(profileName) {
                 start.linkTo(parent.start)
                 top.linkTo(profileImage.bottom, margin = 20.dp)
                 end.linkTo(parent.end)
             }, style = TextStyle(
                 fontWeight = FontWeight.Bold,
-                fontSize = 30.sp,
+                fontSize = 24.sp,
             ), fontFamily = bold
         )
 
@@ -136,10 +141,10 @@ fun ViewProfile() {
                 .padding(2.dp)
                 .constrainAs(department) {
                     start.linkTo(parent.start)
-                    top.linkTo(profileName.bottom, margin = 10.dp)
+                    top.linkTo(profileName.bottom, margin = 15.dp)
                     end.linkTo(parent.end)
                 },
-            colors = CardDefaults.cardColors(colorResource(id = R.color.off_white)),
+            colors = CardDefaults.cardColors(colorResource(id = R.color.login_background)),
             shape = RoundedCornerShape(14.dp)
 
         ) {
@@ -147,51 +152,78 @@ fun ViewProfile() {
 
         }
 
-        Divider(modifier = Modifier.constrainAs(dividerOne) {
-            start.linkTo(parent.start)
-            end.linkTo(parent.end)
-            top.linkTo(department.bottom, margin = 10.dp)
-        })
+        Divider(modifier = Modifier
+            .background(colorResource(id = R.color.divider_color))
+            .constrainAs(dividerOne) {
+                start.linkTo(parent.start)
+                end.linkTo(parent.end)
+                top.linkTo(department.bottom, margin = 25.dp)
+            })
 
         Icon(
-            painter = painterResource(id = R.drawable.email_24),
+            painter = painterResource(id = R.drawable.mail_1),
             contentDescription = "",
-            modifier = Modifier.constrainAs(emailIcon) {
-                start.linkTo(parent.start, margin = 10.dp)
-                top.linkTo(dividerOne.bottom, margin = 10.dp)
-            })
+            modifier = Modifier
+                .size(19.dp, 20.dp)
+                .constrainAs(emailIcon) {
+                    start.linkTo(parent.start, margin = 17.dp)
+                    top.linkTo(dividerOne.bottom, margin = 10.dp)
+                })
         Icon(
-            painter = painterResource(id = R.drawable.call_24),
+            painter = painterResource(id = R.drawable.call_1),
             contentDescription = "",
-            modifier = Modifier.constrainAs(mobileIcon) {
-                start.linkTo(parent.start, margin = 10.dp)
-                top.linkTo(emailIcon.bottom, margin = 13.dp)
-            })
+            modifier = Modifier
+                .size(19.dp, 20.dp)
+                .constrainAs(mobileIcon) {
+                    start.linkTo(parent.start, margin = 17.dp)
+                    top.linkTo(emailIcon.bottom, margin = 13.dp)
+                })
         Text(text = "Santhosh123@Gmail.com", modifier = Modifier.constrainAs(email) {
             start.linkTo(emailIcon.start, margin = 30.dp)
             top.linkTo(dividerOne.bottom, margin = 10.dp)
-        })
+        }, style = TextStyle(
+            fontSize = 14.sp
+        )
+        )
         Text(text = "123456789", modifier = Modifier.constrainAs(mobileNumber) {
             start.linkTo(emailIcon.start, margin = 30.dp)
-            top.linkTo(email.bottom, margin = 15.dp)
-        })
+            top.linkTo(email.bottom, margin = 13.dp)
+        }, style = TextStyle(
+            fontSize = 14.sp
+        ))
 
 
-        Icon(
-            painter = painterResource(id = R.drawable.email_24),
+        Image(
+            painter = painterResource(id = R.drawable.mail_logo),
             contentDescription = "",
-            modifier = Modifier.constrainAs(emailImage) {
-                end.linkTo(parent.end, margin = 50.dp)
-                top.linkTo(dividerOne.bottom, margin = 20.dp)
-            })
-        Icon(
-            painter = painterResource(id = R.drawable.call_24),
+            modifier = Modifier
+                .size(width = 40.dp, height = 40.dp)
+                .clip(CircleShape)
+                .border(
+                    BorderStroke(width = 1.dp, colorResource(id = R.color.blue)),
+                    CircleShape
+                )
+                .padding(8.dp)
+                .constrainAs(emailImage) {
+                    end.linkTo(parent.end, margin = 60.dp)
+                    top.linkTo(dividerOne.bottom, margin = 20.dp)
+                })
+        Image(
+            painter = painterResource(id = R.drawable.call_logo),
             contentDescription = "",
-            modifier = Modifier.constrainAs(mobileImage) {
-                start.linkTo(emailImage.start, margin = 10.dp)
-                top.linkTo(dividerOne.bottom, margin = 20.dp)
-                end.linkTo(parent.end)
-            })
+            modifier = Modifier
+                .clip(CircleShape)
+                .border(
+                    BorderStroke(width = 1.dp, colorResource(id = R.color.blue)),
+                    CircleShape
+                )
+                .size(width = 40.dp, height = 40.dp)
+                .padding(8.dp)
+                .constrainAs(mobileImage) {
+                    start.linkTo(emailImage.start, margin = 60.dp)
+                    top.linkTo(dividerOne.bottom, margin = 20.dp)
+                    end.linkTo(parent.end)
+                })
         Divider(
             modifier = Modifier
                 .height(20.dp)
@@ -199,7 +231,7 @@ fun ViewProfile() {
                     start.linkTo(parent.start)
                     end.linkTo(parent.end)
                     top.linkTo(mobileIcon.bottom, margin = 20.dp)
-                }, color = colorResource(id = R.color.off_white)
+                }, color = colorResource(id = R.color.login_background)
 
 
         )
@@ -210,24 +242,26 @@ fun ViewProfile() {
                 top.linkTo(dividerTwo.bottom, margin = 10.dp)
 
             }, style = TextStyle(
-                fontSize = 20.sp,
+                fontSize = 16.sp,
                 fontWeight = FontWeight.ExtraBold,
                 fontFamily = FontFamily.Default
             )
         )
 
-        Divider(modifier = Modifier.constrainAs(dividerTree) {
-            start.linkTo(parent.start)
-            top.linkTo(basicInformation.bottom, margin = 20.dp)
-            end.linkTo(parent.end)
-        })
+        Divider(modifier = Modifier
+            .background(colorResource(id = R.color.divider_color))
+            .constrainAs(dividerTree) {
+                start.linkTo(parent.start)
+                top.linkTo(basicInformation.bottom, margin = 20.dp)
+                end.linkTo(parent.end)
+            })
 
         Text(
             text = "Date of Birth", modifier = Modifier.constrainAs(dobTitle) {
                 start.linkTo(parent.start)
                 top.linkTo(dividerTree.bottom, margin = 10.dp)
             }, style = TextStyle(
-                fontSize = 18.sp,
+                fontSize = 14.sp,
 
                 )
         )
@@ -236,7 +270,7 @@ fun ViewProfile() {
                 start.linkTo(parent.start)
                 top.linkTo(dobTitle.bottom, margin = 10.dp)
             }, style = TextStyle(
-                fontSize = 18.sp,
+                fontSize = 14.sp,
 
                 )
         )
@@ -245,7 +279,7 @@ fun ViewProfile() {
                 start.linkTo(parent.start)
                 top.linkTo(bgTitle.bottom, margin = 10.dp)
             }, style = TextStyle(
-                fontSize = 18.sp,
+                fontSize = 14.sp,
 
                 )
         )
@@ -254,7 +288,7 @@ fun ViewProfile() {
                 start.linkTo(guideline)
                 top.linkTo(dividerTree.bottom, margin = 10.dp)
             }, style = TextStyle(
-                fontSize = 18.sp,
+                fontSize = 14.sp,
                 fontFamily = bold
 
             )
@@ -264,7 +298,7 @@ fun ViewProfile() {
                 start.linkTo(guideline)
                 top.linkTo(dob.bottom, margin = 10.dp)
             }, style = TextStyle(
-                fontSize = 18.sp,
+                fontSize = 14.sp,
                 fontFamily = bold
 
             )
@@ -274,21 +308,21 @@ fun ViewProfile() {
                 start.linkTo(guideline)
                 top.linkTo(bloodGroup.bottom, margin = 10.dp)
             }, style = TextStyle(
-                fontSize = 18.sp,
+                fontSize = 14.sp,
                 fontFamily = bold
 
             )
         )
 
-        Divider(
-            modifier = Modifier
-                .fillMaxSize()
-                .constrainAs(dividerFour) {
-                    start.linkTo(parent.start)
-                    end.linkTo(parent.end)
-                    top.linkTo(address.bottom, margin = 20.dp)
-                }, color = colorResource(id = R.color.off_white)
-        )
+//        Divider(
+//            modifier = Modifier
+//                .fillMaxSize()
+//                .constrainAs(dividerFour) {
+//                    start.linkTo(parent.start)
+//                    end.linkTo(parent.end)
+//                    top.linkTo(address.bottom, margin = 20.dp)
+//                }, color = colorResource(id = R.color.login_background)
+//        )
     }
 
 }

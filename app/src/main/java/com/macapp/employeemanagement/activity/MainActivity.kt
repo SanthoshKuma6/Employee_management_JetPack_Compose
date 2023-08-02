@@ -1,5 +1,6 @@
 package com.macapp.employeemanagement.activity
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.animation.OvershootInterpolator
 import androidx.activity.ComponentActivity
@@ -12,23 +13,30 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material.Colors
 import androidx.compose.material.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.macapp.employeemanagement.R
 import com.macapp.employeemanagement.activity.ui.theme.EmployeeManagementTheme
 import com.macapp.employeemanagement.app.EmployeeManagement
+import com.macapp.employeemanagement.preference.DataStoredPreference
 import com.macapp.employeemanagement.screens.EmployeeDetails
+import com.macapp.employeemanagement.screens.LoginScreen
 import com.macapp.employeemanagement.viewmodel.LoginViewModel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
@@ -39,68 +47,79 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             EmployeeManagementTheme {
-               Navigation()
-            }
-        }
-    }
-}
+//               Navigation()
+//                EmployeeManagement()
 
-
-@Composable
-fun Navigation() {
-    val navController = rememberNavController()
-    NavHost(navController = navController, startDestination = "splash_screen") {
-        composable("splash_screen") {
-            SplashScreen(navController = navController)
-        }
-        composable("main_screen") {
-            Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
-             EmployeeManagementTheme {
-                 Login(username = "900", password = "8484848")
-                 EmployeeManagement()
-             }
-            }
-        }
-
-    }
-
-}
-
-
-
-@Composable
-fun Login(username:String,password:String){
-
-
-
-
-}
-@Composable
-fun SplashScreen(navController: NavController) {
-    val scale = remember {
-        Animatable(1f)
-    }
-    LaunchedEffect(key1 = true) {
-        scale.animateTo(
-            targetValue = 0.3f,
-            animationSpec = tween(
-                durationMillis = 500,
-                easing = {
-                    OvershootInterpolator(2f).getInterpolation(it)
+                val systemUiController = rememberSystemUiController()
+                SideEffect {
+                    systemUiController.setStatusBarColor(
+                        color = Color.LightGray,
+                        darkIcons = false
+                    )
                 }
+                Surface {
+                    val loginData=DataStoredPreference(this).getUSerData()["loginToken"]
+                    if (loginData=="null" || loginData.isNullOrBlank()){
+                        com.macapp.employeemanagement.activity.LoginScreen()
+                    }else{
+                        val intent=Intent(this,HomeActivity::class.java)
+                        startActivity(intent)
+                    }
+
+
+                }
+            }
+        }
+    }
+
+
+    @Composable
+    fun Navigation() {
+        val navController = rememberNavController()
+        NavHost(navController = navController, startDestination = "splash_screen") {
+            composable("splash_screen") {
+//            SplashScreen(navController = navController)
+            }
+            composable("main_screen") {
+                Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+                    EmployeeManagementTheme {
+                        EmployeeManagement()
+                    }
+                }
+            }
+
+        }
+
+    }
+
+
+    @Composable
+    fun SplashScreen(navController: NavController) {
+        val scale = remember {
+            Animatable(1f)
+        }
+        LaunchedEffect(key1 = true) {
+            scale.animateTo(
+                targetValue = 0.3f,
+                animationSpec = tween(
+                    durationMillis = 500,
+                    easing = {
+                        OvershootInterpolator(2f).getInterpolation(it)
+                    }
+                )
+
             )
+            delay(300L)
+            navController.navigate("main_screen")
+        }
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Image(
+                painter = painterResource(id = R.drawable.emma_watson), contentDescription = "logo",
+                modifier = Modifier.scale(scale.value)
+            )
+        }
 
-        )
-        delay(300L)
-        navController.navigate("main_screen")
     }
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Image(
-            painter = painterResource(id = R.drawable.emma_watson), contentDescription = "logo",
-            modifier = Modifier.scale(scale.value)
-        )
-    }
-
 }
 
 

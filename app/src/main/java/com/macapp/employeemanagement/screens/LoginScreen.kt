@@ -1,5 +1,6 @@
 package com.macapp.employeemanagement.screens
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -36,6 +37,8 @@ import com.macapp.employeemanagement.components.NormalTextComponent
 import com.macapp.employeemanagement.components.PasswordTextFieldComponent
 import com.macapp.employeemanagement.components.TitleImageComponent
 import com.macapp.employeemanagement.model_class.login.LoginUIEvent
+import com.macapp.employeemanagement.navigation.AppRouter
+import com.macapp.employeemanagement.navigation.Screen
 import com.macapp.employeemanagement.network.ApiService
 import com.macapp.employeemanagement.viewmodel.LoginViewModel
 import kotlinx.coroutines.launch
@@ -61,7 +64,7 @@ fun LoginScreen(loginViewModel: LoginViewModel = viewModel()) {
             modifier = Modifier
                 .fillMaxWidth()
                 .height(250.dp)
-                .background(colorResource(id = R.color.off_white))
+                .background(colorResource(id = R.color.login_background))
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -72,75 +75,50 @@ fun LoginScreen(loginViewModel: LoginViewModel = viewModel()) {
             }
 
         }
-
         Box(
             modifier = Modifier
-                .padding(top = 250.dp, start = 15.dp, end = 15.dp)
+                .padding(top = 250.dp, start = 16.dp, end = 16.dp)
                 .background(Color.White)
                 .fillMaxSize()
         ) {
             Column() {
-
                 Login(value = stringResource(id = R.string.login))
                 LoginCredential(value = stringResource(id = R.string.login_enter))
                 Spacer(modifier = Modifier.height(10.dp))
                 NormalEmailText(value = stringResource(id = R.string.email_text))
-                MyTextFieldComponent(
-                    labelValue = stringResource(id = R.string.email_text),
-                    painterResource(id = R.drawable.message), onTextSelected = {
-                        loginViewModel.onEvent(LoginUIEvent.EmailChanged(it))
-                        email=it
-//                       username= loginViewModel.onEvent(LoginUIEvent.EmailChanged(it)).toString()
-
-                    },
-                )
+//                MyTextFieldComponent(
+//                    labelValue = stringResource(id = R.string.email_text),
+//                    painterResource(id = R.drawable.message),
+//                    onTextSelected = {
+//                        email = it
+////                       username= loginViewModel.onEvent(LoginUIEvent.EmailChanged(it)).toString()
+//                    }
+//                )
                 NormalEmailText(value = stringResource(id = R.string.title_password))
                 Spacer(modifier = Modifier.height(10.dp))
-                PasswordTextFieldComponent(
-                    labelValue = stringResource(id = R.string.password_text),
-                    painterResource(id = R.drawable.lock),
-                    onTextSelected = {
-                        loginViewModel.onEvent(LoginUIEvent.PasswordChanged(it))
-                        password=it
-//                        password= loginViewModel.onEvent(LoginUIEvent.PasswordChanged(it)).toString()
-                    },
-                    )
+//                PasswordTextFieldComponent(
+//                    labelValue = stringResource(id = R.string.password_text),
+//                    painterResource(id = R.drawable.lock),
+//
+//                    onTextSelected = {
+//                        password = it
+////                        password= loginViewModel.onEvent(LoginUIEvent.PasswordChanged(it)).toString()
+//                    },
+//                )
                 Spacer(modifier = Modifier.height(50.dp))
                 ButtonComponent(
                     value = stringResource(id = R.string.login_button),
                     onButtonClicked = {
-                        loginViewModel.onEvent(LoginUIEvent.LoginButtonClicked)
 //                        PostList(email = email, password =password )
+                        AppRouter.navigateTo(Screen.MyEmployeeScreen)
 
-                    }
+                        Log.d("useremail", "LoginScreen: $email,$password")
+
+                    },
                 )
-
-
-            }
-        }
-
-
-    }
-
-
-}
-
-
-@Composable
-fun PostList(email:String,password:String) {
-    var posts by remember { mutableStateOf(emptyList<LoginUIEvent>()) }
-    val coroutineScope = rememberCoroutineScope()
-    LaunchedEffect(Unit) {
-        coroutineScope.launch {
-            try {
-                posts = ApiService.NetworkClient.apiService.login(email, password)
-            } catch (e: Exception) {
-                // Handle error here
-                e.printStackTrace()
             }
         }
     }
-
 }
 
 

@@ -14,6 +14,9 @@
     <color name="login">#758283</color>
     <color name="light_black">#414a4c</color>
     <color name="light_white">#CAD5E2</color>
-    <color name="off_white">#FAF9F6</color>
+    <color name="login_background">#F4F6F8</color>
+    <color name="blue">#4079E5</color>
+    <color name="card_background">#6D7278</color>
+    <color name="divider_color">#E7E7E7</color>
 
 </resources>

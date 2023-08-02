@@ -2,14 +2,15 @@ package com.macapp.employeemanagement.model_class
 
 object Validator {
 
-    fun validateEmail(email: String): ValidationResult {
+    fun validateEmail(registrationNumber: String): ValidationResult {
         return ValidationResult(
-            !email.isNullOrEmpty()
+            (!registrationNumber.isNullOrEmpty())
         )
     }
 
     fun validatePassword(password: String): ValidationResult {
-        return ValidationResult(!password.isNullOrEmpty() && password.length >= 10)
+        return ValidationResult(
+            (!password.isNullOrEmpty() ))
     }
 }
 
