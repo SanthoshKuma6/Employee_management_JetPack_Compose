@@ -1,50 +1,45 @@
 package com.macapp.employeemanagement.components
 
-import android.annotation.SuppressLint
 import android.app.DatePickerDialog
 import android.content.Intent
+import android.os.Build
 import android.widget.DatePicker
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Button
+import androidx.compose.material.DropdownMenu
+import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Event
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.foundation.text.ClickableText
-import androidx.compose.material.ButtonDefaults
-import androidx.compose.material.DropdownMenu
-import androidx.compose.material.DropdownMenuItem
-import androidx.compose.material.IconButton
-import androidx.compose.material.Scaffold
-import androidx.compose.material.TopAppBar
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -52,7 +47,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
@@ -68,13 +62,16 @@ import com.macapp.employeemanagement.repository.LoginRepository
 import com.macapp.employeemanagement.ui.theme.componentShapes
 import com.macapp.employeemanagement.viewmodel.LoginViewModel
 import com.macapp.employeemanagement.viewmodel.ViewModelFactory
-import java.util.ArrayList
+import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.util.Calendar
 import java.util.Date
+import java.util.Locale
 
 @Composable
 fun AddEmployeeFieldComponent(
-    labelValue: String,onTextSelected: (String) -> Unit
+    labelValue: String, onTextSelected: (String) -> Unit
 ) {
 
     val textValue = remember {
@@ -93,7 +90,7 @@ fun AddEmployeeFieldComponent(
         value = textValue.value,
         onValueChange = {
             textValue.value = it
-
+            onTextSelected(it)
         },
 
 
@@ -103,7 +100,7 @@ fun AddEmployeeFieldComponent(
 
 @Composable
 fun AddAddressFieldComponent(
-    labelValue: String,onTextSelected: (String) -> Unit
+    labelValue: String, onTextSelected: (String) -> Unit
 ) {
 
     val textValue = remember {
@@ -124,7 +121,7 @@ fun AddAddressFieldComponent(
         value = textValue.value,
         onValueChange = {
             textValue.value = it
-
+            onTextSelected(it)
         },
 
 
@@ -157,7 +154,11 @@ fun AdEmployeeButtonComponent() {
 
 
 @Composable
-fun DropDownComponent() {
+fun DropDownComponent(onTextSelected: (String) -> Unit) {
+    val departmentListItem: ArrayList<DepartmentList.Data?> = ArrayList()
+    var boolean by remember {
+        mutableStateOf(false)
+    }
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
     val viewModel: LoginViewModel = viewModel(
@@ -166,8 +167,6 @@ fun DropDownComponent() {
         )
     )
     var mExpanded by remember { mutableStateOf(false) }
-    val mCities = listOf("Delhi", "Mumbai", "Chennai", "Kolkata", "Hyderabad", "Bengaluru", "Pune")
-    val departmentItem=ArrayList<DepartmentList.Data?>()
 
     var mSelectedText by remember { mutableStateOf("") }
     var mTextFieldSize by remember {
@@ -183,17 +182,32 @@ fun DropDownComponent() {
 
         OutlinedTextField(
             value = mSelectedText,
-            onValueChange = { mSelectedText = it },
+            onValueChange = {
+                mSelectedText = it
+
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .onGloballyPositioned { coordinates ->
 
                     mTextFieldSize = coordinates.size.toSize()
                 },
-            label = { Text("Select your Department") },
+            placeholder = { Text(text = "Select your department") },
+
             trailingIcon = {
                 Icon(icon, "contentDescription",
-                    Modifier.clickable { mExpanded = !mExpanded })
+                    Modifier.clickable {
+                        val token = DataStoredPreference(context).getUSerData()["loginToken"]
+
+                        if (!boolean) {
+                            coroutineScope.launch {
+                                viewModel.departmentList(token.toString())
+                                boolean = true
+
+                            }
+                        }
+                        mExpanded = !mExpanded
+                    })
             }
         )
 
@@ -203,15 +217,22 @@ fun DropDownComponent() {
             modifier = Modifier
                 .width(with(LocalDensity.current) { mTextFieldSize.width.toDp() })
         ) {
-            departmentItem.forEach { label ->
+            departmentListItem.forEach { label ->
                 DropdownMenuItem(onClick = {
                     mSelectedText = label?.name.toString()
                     mExpanded = false
                 }) {
                     Text(text = label?.name.toString())
+                    for (i in departmentListItem) {
+                        if (i?.name==mSelectedText){
+                            onTextSelected(i.token.toString())
+                        }
+                    }
+
                 }
             }
         }
+
     }
 
 
@@ -220,11 +241,14 @@ fun DropDownComponent() {
         is Response.Loading -> {}
 
         is Response.Success -> {
-            val departmentName = result.data!!.name
+            result.data?.data?.let { departmentListItem.addAll(it) }
+
+
         }
 
         is Response.Error -> {
             val errorMessage = result.errorMessage
+            Toast.makeText(context, "$errorMessage", Toast.LENGTH_LONG).show()
         }
 
         else -> {}
@@ -232,8 +256,11 @@ fun DropDownComponent() {
 }
 
 
+
+
+
 @Composable
-fun DatePickerComponent() {
+fun DatePickerComponent(onTextSelected: (String) -> Unit) {
     val context = LocalContext.current
     val mYear: Int
     val mMonth: Int
@@ -247,30 +274,33 @@ fun DatePickerComponent() {
         mutableStateOf("")
     }
     val mDate = remember { mutableStateOf("") }
-
     val mDatePickerDialog = DatePickerDialog(
         context,
         { _: DatePicker, mYear: Int, mMonth: Int, mDayOfMonth: Int ->
-            mDate.value = "$mDayOfMonth/${mMonth + 1}/$mYear"
+            mDate.value = "$mYear-${mMonth+1}-$mDayOfMonth"
         }, mYear, mMonth, mDay
-    )
 
+    )
     OutlinedTextField(
         modifier = Modifier
             .fillMaxWidth()
             .clip(componentShapes.small),
         placeholder = { Text(text = "date of birth") },
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-        label = { Text(text = "${mDate.value}")},
+        label = { Text(text = mDate.value)
+            onTextSelected(mDate.value)
+
+        },
         singleLine = true,
         maxLines = 1,
         value = textValue.value,
         onValueChange = {
             textValue.value = it
+            onTextSelected(mDate.value)
 
         },
         trailingIcon = {
-            IconButton(onClick = { mDatePickerDialog.show()}) {
+            IconButton(onClick = { mDatePickerDialog.show() }) {
                 Icon(painter = painterResource(id = R.drawable.calender), contentDescription = "")
             }
 
@@ -279,8 +309,6 @@ fun DatePickerComponent() {
 
     )
 }
-
-
 
 
 @Composable

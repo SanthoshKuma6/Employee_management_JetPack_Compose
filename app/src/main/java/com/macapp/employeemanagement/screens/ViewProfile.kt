@@ -1,10 +1,12 @@
 package com.macapp.employeemanagement.screens
 
+import android.content.Intent
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -21,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -29,12 +32,14 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import com.macapp.employeemanagement.R
+import com.macapp.employeemanagement.activity.HomeActivity
 import com.macapp.employeemanagement.components.BackNavigationComponent
 import com.macapp.employeemanagement.navigation.AppRouter
 import com.macapp.employeemanagement.navigation.Screen
@@ -90,12 +95,19 @@ fun ViewProfile() {
 
             modifier = Modifier.constrainAs(leftArrow) {
                 start.linkTo(parent.start)
-                top.linkTo(parent.top, margin = 20.dp)
+                top.linkTo(parent.top, margin = 21.dp)
             })
-        Text(text = "Back", modifier = Modifier.constrainAs(back) {
-            start.linkTo(leftArrow.start, margin = 25.dp)
-            top.linkTo(parent.top, margin = 20.dp)
-        }, style = TextStyle(
+        Text(text = "Back", modifier = Modifier
+            .constrainAs(back) {
+                start.linkTo(leftArrow.start, margin = 25.dp)
+                top.linkTo(parent.top, margin = 20.dp)
+            }
+            .clickable {
+                val intent = Intent(
+                    context, HomeActivity::class.java
+                )
+                context.startActivity(intent)
+            },style = TextStyle(fontSize = 17.sp
 
         ), color = colorResource(id = R.color.blue),
         )
@@ -116,13 +128,14 @@ fun ViewProfile() {
             painter = painterResource(id = R.drawable.profilepic),
             contentDescription = "",
             modifier = Modifier
+                .clip(CircleShape)
                 .size(90.dp, 90.dp)
                 .constrainAs(profileImage) {
                     start.linkTo(parent.start)
                     end.linkTo(parent.end)
-                    top.linkTo(parent.top, margin = 20.dp)
+                    top.linkTo(parent.top, margin = 26.dp)
 
-                })
+                },contentScale = ContentScale.Crop)
 
 
         Text(
@@ -148,17 +161,20 @@ fun ViewProfile() {
             shape = RoundedCornerShape(14.dp)
 
         ) {
-            Text(text = "Android Developer", modifier = Modifier.padding(8.dp))
+            Text(text = "Android Developer", modifier = Modifier.padding(7.dp), style = TextStyle(
+                fontWeight = FontWeight.Bold
+            ),color= colorResource(id = R.color.light_white_text)
+            )
 
         }
 
         Divider(modifier = Modifier
-            .background(colorResource(id = R.color.divider_color))
+
             .constrainAs(dividerOne) {
                 start.linkTo(parent.start)
                 end.linkTo(parent.end)
                 top.linkTo(department.bottom, margin = 25.dp)
-            })
+            }, color = colorResource(id = R.color.divider_color))
 
         Icon(
             painter = painterResource(id = R.drawable.mail_1),
@@ -167,7 +183,7 @@ fun ViewProfile() {
                 .size(19.dp, 20.dp)
                 .constrainAs(emailIcon) {
                     start.linkTo(parent.start, margin = 17.dp)
-                    top.linkTo(dividerOne.bottom, margin = 10.dp)
+                    top.linkTo(dividerOne.bottom, margin = 12.dp)
                 })
         Icon(
             painter = painterResource(id = R.drawable.call_1),
@@ -181,14 +197,14 @@ fun ViewProfile() {
         Text(text = "Santhosh123@Gmail.com", modifier = Modifier.constrainAs(email) {
             start.linkTo(emailIcon.start, margin = 30.dp)
             top.linkTo(dividerOne.bottom, margin = 10.dp)
-        }, style = TextStyle(
+        },color= colorResource(id = R.color.light_white_text), style = TextStyle(
             fontSize = 14.sp
         )
         )
         Text(text = "123456789", modifier = Modifier.constrainAs(mobileNumber) {
             start.linkTo(emailIcon.start, margin = 30.dp)
             top.linkTo(email.bottom, margin = 13.dp)
-        }, style = TextStyle(
+        },color= colorResource(id = R.color.light_white_text), style = TextStyle(
             fontSize = 14.sp
         ))
 
@@ -226,26 +242,26 @@ fun ViewProfile() {
                 })
         Divider(
             modifier = Modifier
-                .height(20.dp)
+                .height(9.dp)
                 .constrainAs(dividerTwo) {
                     start.linkTo(parent.start)
                     end.linkTo(parent.end)
                     top.linkTo(mobileIcon.bottom, margin = 20.dp)
-                }, color = colorResource(id = R.color.login_background)
+                }, color = colorResource(id = R.color.divider_color)
 
 
         )
 
         Text(
             text = "Basic Information", modifier = Modifier.constrainAs(basicInformation) {
-                start.linkTo(parent.start, margin = 10.dp)
+                start.linkTo(parent.start)
                 top.linkTo(dividerTwo.bottom, margin = 10.dp)
 
             }, style = TextStyle(
                 fontSize = 16.sp,
                 fontWeight = FontWeight.ExtraBold,
                 fontFamily = FontFamily.Default
-            )
+            ),
         )
 
         Divider(modifier = Modifier
@@ -254,13 +270,13 @@ fun ViewProfile() {
                 start.linkTo(parent.start)
                 top.linkTo(basicInformation.bottom, margin = 20.dp)
                 end.linkTo(parent.end)
-            })
+            },color = colorResource(id = R.color.divider_color))
 
         Text(
             text = "Date of Birth", modifier = Modifier.constrainAs(dobTitle) {
                 start.linkTo(parent.start)
                 top.linkTo(dividerTree.bottom, margin = 10.dp)
-            }, style = TextStyle(
+            },color= colorResource(id = R.color.light_white_text), style = TextStyle(
                 fontSize = 14.sp,
 
                 )
@@ -269,7 +285,7 @@ fun ViewProfile() {
             text = "Blood Group", modifier = Modifier.constrainAs(bgTitle) {
                 start.linkTo(parent.start)
                 top.linkTo(dobTitle.bottom, margin = 10.dp)
-            }, style = TextStyle(
+            },color= colorResource(id = R.color.light_white_text), style = TextStyle(
                 fontSize = 14.sp,
 
                 )
@@ -278,7 +294,7 @@ fun ViewProfile() {
             text = "Address", modifier = Modifier.constrainAs(addressTitle) {
                 start.linkTo(parent.start)
                 top.linkTo(bgTitle.bottom, margin = 10.dp)
-            }, style = TextStyle(
+            },color= colorResource(id = R.color.light_white_text), style = TextStyle(
                 fontSize = 14.sp,
 
                 )
@@ -287,32 +303,28 @@ fun ViewProfile() {
             text = "Feb 3 2000", modifier = Modifier.constrainAs(dob) {
                 start.linkTo(guideline)
                 top.linkTo(dividerTree.bottom, margin = 10.dp)
-            }, style = TextStyle(
+            },color= colorResource(id = R.color.black),
+            style = TextStyle(
                 fontSize = 14.sp,
-                fontFamily = bold
+                fontWeight = FontWeight.ExtraBold,
+                fontStyle = FontStyle.Normal), fontFamily = bold)
 
-            )
-        )
         Text(
             text = "A Negative", modifier = Modifier.constrainAs(bloodGroup) {
                 start.linkTo(guideline)
                 top.linkTo(dob.bottom, margin = 10.dp)
             }, style = TextStyle(
                 fontSize = 14.sp,
-                fontFamily = bold
-
-            )
-        )
+                fontWeight = FontWeight.ExtraBold,
+                fontStyle = FontStyle.Normal), fontFamily = bold)
         Text(
-            text = "Medavakkam", modifier = Modifier.constrainAs(address) {
+            text = "785 Duwud River,\nKacohwe,Minnesota,\nBurundi- 21087",modifier = Modifier.constrainAs(address) {
                 start.linkTo(guideline)
                 top.linkTo(bloodGroup.bottom, margin = 10.dp)
             }, style = TextStyle(
                 fontSize = 14.sp,
-                fontFamily = bold
-
-            )
-        )
+                fontWeight = FontWeight.ExtraBold,
+                fontStyle = FontStyle.Normal), fontFamily = bold)
 
 //        Divider(
 //            modifier = Modifier

@@ -74,7 +74,7 @@ class LoginViewModel(private val loginRepository: LoginRepository) : ViewModel()
 
     private val addEmployeeList=MutableStateFlow<Response<AddEmployee>>(Response.Loading(false))
     val addEmployeeState:StateFlow<Response<AddEmployee>> = addEmployeeList
-    fun addEmployee(token:String,jsonObject: JsonObject) {
+    fun addEmployee(token: String,jsonObject: JsonObject) {
 
         viewModelScope.launch {
             addEmployeeList.value= Response.Loading(true)
@@ -95,8 +95,8 @@ class LoginViewModel(private val loginRepository: LoginRepository) : ViewModel()
     }
 
 
-    private val departmentList=MutableStateFlow<Response<DepartmentList.Data>>(Response.Loading(false))
-    val departmentState:StateFlow<Response<DepartmentList.Data>> = departmentList
+    private val departmentList=MutableStateFlow<Response<DepartmentList>>(Response.Loading(false))
+    val departmentState:StateFlow<Response<DepartmentList>> = departmentList
 
 
     fun departmentList(token:String) {

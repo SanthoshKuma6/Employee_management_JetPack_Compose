@@ -25,12 +25,12 @@ class LoginRepository( val apiService: ApiService) {
 
     }
 
-    suspend fun addEmployee(token:String,jsonObject: JsonObject):retrofit2.Response<AddEmployee> {
-        return apiService.addEmployee("Bearer $token",jsonObject)
+    suspend fun addEmployee(token: String,jsonObject: JsonObject):retrofit2.Response<AddEmployee> {
+        return apiService.addEmployee(token,jsonObject)
 
     }
 
-    suspend fun getDepartmentList(token:String):retrofit2.Response<DepartmentList.Data> {
+    suspend fun getDepartmentList(token:String):retrofit2.Response<DepartmentList> {
         return apiService.getDepartmentList("Bearer $token")
 
     }

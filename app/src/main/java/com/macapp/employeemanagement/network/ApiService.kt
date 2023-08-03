@@ -33,7 +33,7 @@ interface ApiService {
     suspend fun getDepartmentList(
         @Header("Authorization") token: String,
 
-    ): Response<DepartmentList.Data>
+    ): Response<DepartmentList>
 
     object NetworkClient {
         private const val BASE_URL = "http://18.218.209.28:8000/api/"

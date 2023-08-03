@@ -16,3 +16,5 @@ data class DepartmentList(
         val token: String? = ""
     )
 }
+
+

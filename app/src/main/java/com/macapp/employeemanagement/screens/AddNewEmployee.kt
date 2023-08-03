@@ -2,6 +2,8 @@ package com.macapp.employeemanagement.screens
 
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -17,9 +19,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Button
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -39,10 +41,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.google.gson.JsonObject
 import com.macapp.employeemanagement.R
 import com.macapp.employeemanagement.activity.HomeActivity
-import com.macapp.employeemanagement.components.AdEmployeeButtonComponent
 import com.macapp.employeemanagement.components.AddAddressFieldComponent
 import com.macapp.employeemanagement.components.AddEmployeeFieldComponent
 import com.macapp.employeemanagement.components.DatePickerComponent
@@ -50,11 +53,11 @@ import com.macapp.employeemanagement.components.DropDownComponent
 import com.macapp.employeemanagement.components.ImageComponent
 import com.macapp.employeemanagement.components.NormalEmailText
 import com.macapp.employeemanagement.network.ApiService
+import com.macapp.employeemanagement.network.Response
 import com.macapp.employeemanagement.preference.DataStoredPreference
 import com.macapp.employeemanagement.repository.LoginRepository
 import com.macapp.employeemanagement.viewmodel.LoginViewModel
 import com.macapp.employeemanagement.viewmodel.ViewModelFactory
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
 @Composable
@@ -121,8 +124,12 @@ fun GreetingSection() {
 @SuppressLint("CoroutineCreationDuringComposition")
 @Composable
 fun EmployeeDetails() {
+    val context = LocalContext.current
+    val boolean by remember {
+        mutableStateOf(false)
+    }
     val (name, setName) = remember { mutableStateOf("") }
-    val (department, setDepartment) = remember {
+    val (departmentToken, setDepartment) = remember {
         mutableStateOf("")
     }
     val (email, setEmail) = remember {
@@ -140,13 +147,18 @@ fun EmployeeDetails() {
     val (address, setAddress) = remember {
         mutableStateOf("")
     }
-    val coroutineScope = rememberCoroutineScope()
-    val context = LocalContext.current
-    val viewModel: LoginViewModel = viewModel(
-        factory = ViewModelFactory(
-            LoginRepository(ApiService.NetworkClient.apiService)
-        )
-    )
+    val token = DataStoredPreference(context).getUSerData()["loginToken"]
+
+    val jsonObject = JsonObject().apply {
+        addProperty("name", name)
+        addProperty("email", email)
+        addProperty("department_token", departmentToken)
+        addProperty("date_of_birth", dateOfBirth)
+        addProperty("mobile_number", number)
+        addProperty("address", address)
+        addProperty("blood_group", bloodGroup)
+    }
+
     ImageComponent()
     NormalEmailText(value = stringResource(id = R.string.employee_title))
     AddEmployeeFieldComponent(
@@ -156,7 +168,11 @@ fun EmployeeDetails() {
         })
 
     NormalEmailText(value = stringResource(id = R.string.enter_department_name))
-    DropDownComponent()
+    DropDownComponent(
+        onTextSelected = {
+            setDepartment(it)
+        },
+    )
 
     NormalEmailText(value = stringResource(id = R.string.email_address))
     AddEmployeeFieldComponent(
@@ -173,7 +189,9 @@ fun EmployeeDetails() {
         })
 
     NormalEmailText(value = stringResource(id = R.string.dob_title))
-    DatePickerComponent()
+    DatePickerComponent(onTextSelected = {
+        setDateOfBirth(it)
+    })
     NormalEmailText(value = stringResource(id = R.string.blood_group_title))
 
     AddEmployeeFieldComponent(
@@ -187,17 +205,23 @@ fun EmployeeDetails() {
         setAddress(it)
     })
     Spacer(modifier = Modifier.heightIn(min = 20.dp))
-    AddEmployeeButton()
-
-
+    AddEmployeeButton(jsonObject)
     Spacer(modifier = Modifier.heightIn(min = 20.dp))
-
+//if (!boolean){
+//    coroutineScope.launch {
+//        val token=DataStoredPreference(context).getUSerData()["loginToken"]
+//        viewModel.getEmployeeList(token.toString())
+//    }
+//}
 
 }
 
 @Composable
-fun AddEmployeeButton() {
+fun AddEmployeeButton(jsonObject: JsonObject) {
     val coroutineScope = rememberCoroutineScope()
+    val apiHit by remember {
+        mutableStateOf(false)
+    }
     val context = LocalContext.current
     val viewModel: LoginViewModel = viewModel(
         factory = ViewModelFactory(
@@ -210,12 +234,16 @@ fun AddEmployeeButton() {
             .height(48.dp)
             .background(Color.Blue),
         onClick = {
-            val loginData = DataStoredPreference(context).getUSerData()["loginToken"]
-//            coroutineScope.launch {
-//                viewModel.getEmployeeList(loginData.toString())
-//            }
-            val intent = Intent(context, HomeActivity()::class.java)
-            context.startActivity(intent)
+            val token = DataStoredPreference(context).getUSerData()["loginToken"]
+
+            if (!apiHit) {
+                coroutineScope.launch {
+                    viewModel.addEmployee(token.toString(), jsonObject)
+                    Log.d("addDetails", "AddEmployeeButton: $jsonObject")
+                }
+
+            }
+
         },
     ) {
         androidx.compose.material.Text(
@@ -226,7 +254,23 @@ fun AddEmployeeButton() {
         )
     }
 
+    val employeeState = viewModel.addEmployeeState.collectAsStateWithLifecycle()
+    when (val result = employeeState.value) {
+        is Response.Loading -> {}
 
+        is Response.Success -> {
+            val intent = Intent(context, HomeActivity()::class.java)
+            context.startActivity(intent)
+            Toast.makeText(context, "${result.data}", Toast.LENGTH_LONG).show()
+
+        }
+
+        is Response.Error -> {
+            Toast.makeText(context, "${result.errorMessage}", Toast.LENGTH_LONG).show()
+        }
+
+        else -> {}
+    }
 }
 
 @Preview
