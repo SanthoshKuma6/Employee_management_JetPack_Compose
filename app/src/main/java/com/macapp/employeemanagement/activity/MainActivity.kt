@@ -1,45 +1,37 @@
 package com.macapp.employeemanagement.activity
 
-import android.content.Intent
 import android.os.Bundle
-import android.view.animation.OvershootInterpolator
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.viewModels
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material.Colors
-import androidx.compose.material.Surface
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.BottomNavigation
+import androidx.compose.material.BottomNavigationItem
+import androidx.compose.material.Scaffold
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
-import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.macapp.employeemanagement.R
 import com.macapp.employeemanagement.activity.ui.theme.EmployeeManagementTheme
-import com.macapp.employeemanagement.app.EmployeeManagement
-import com.macapp.employeemanagement.preference.DataStoredPreference
-import com.macapp.employeemanagement.screens.EmployeeDetails
-import com.macapp.employeemanagement.screens.LoginScreen
-import com.macapp.employeemanagement.viewmodel.LoginViewModel
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
+import com.macapp.employeemanagement.model_class.login.BottomNavItem
+import com.macapp.employeemanagement.screens.MyEmployee
+import com.macapp.employeemanagement.screens.MyProfile
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -47,81 +39,106 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             EmployeeManagementTheme {
-//               Navigation()
-//                EmployeeManagement()
-
-                val systemUiController = rememberSystemUiController()
-                SideEffect {
-                    systemUiController.setStatusBarColor(
-                        color = Color.LightGray,
-                        darkIcons = false
-                    )
-                }
-                Surface {
-                    val loginData=DataStoredPreference(this).getUSerData()["loginToken"]
-                    if (loginData=="null" || loginData.isNullOrBlank()){
-                        com.macapp.employeemanagement.activity.LoginScreen()
-                    }else{
-                        val intent=Intent(this,HomeActivity::class.java)
-                        startActivity(intent)
-                    }
-
-
-                }
+                BottomNavigation()
             }
         }
-    }
-
-
-    @Composable
-    fun Navigation() {
-        val navController = rememberNavController()
-        NavHost(navController = navController, startDestination = "splash_screen") {
-            composable("splash_screen") {
-//            SplashScreen(navController = navController)
-            }
-            composable("main_screen") {
-                Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
-                    EmployeeManagementTheme {
-                        EmployeeManagement()
-                    }
-                }
-            }
-
-        }
-
-    }
-
-
-    @Composable
-    fun SplashScreen(navController: NavController) {
-        val scale = remember {
-            Animatable(1f)
-        }
-        LaunchedEffect(key1 = true) {
-            scale.animateTo(
-                targetValue = 0.3f,
-                animationSpec = tween(
-                    durationMillis = 500,
-                    easing = {
-                        OvershootInterpolator(2f).getInterpolation(it)
-                    }
-                )
-
-            )
-            delay(300L)
-            navController.navigate("main_screen")
-        }
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Image(
-                painter = painterResource(id = R.drawable.emma_watson), contentDescription = "logo",
-                modifier = Modifier.scale(scale.value)
-            )
-        }
-
     }
 }
 
+
+@Composable
+fun BottomNavigation() {
+
+    val semiBold = FontFamily(Font(R.font.sf_pro_semibold))
+
+    val items = listOf(
+        BottomNavItem("My Employees",
+            R.drawable.click,
+            R.drawable.unclick,
+            R.color.outline,
+            R.color.blue
+        ),
+        BottomNavItem("My Profile",
+            R.drawable.profile_click,
+            R.drawable.profile_click,
+            R.color.outline,
+            R.color.blue
+        )
+    )
+
+    var selectedIndex by remember { mutableIntStateOf(0) }
+    val isFabVisible = remember { mutableStateOf(true) }
+
+    Scaffold(
+        bottomBar = {
+            BottomNavigation(
+                backgroundColor = Color.White,
+                modifier = Modifier.height(70.dp),
+            ) {
+                items.forEachIndexed { index, item ->
+                    BottomNavigationItem(
+                        icon = {
+                            val iconColor =
+                                if (selectedIndex == index) colorResource(id = item.selectedColor) else colorResource(
+                                    id = item.unselectedColor
+                                )
+                            val painter: Painter =
+                                if (selectedIndex == index) painterResource(id = item.icon) else painterResource(
+                                    id = item.unselect
+                                )
+                            Icon(
+                                painter,
+                                contentDescription = item.title,
+                                tint = iconColor,
+                                modifier = Modifier
+                                    .size(34.dp)
+                                    .padding(bottom = 7.dp)
+                            )
+                        },
+                        label = {
+                            Text(
+                                item.title,
+                                color = if (selectedIndex == index) {
+                                    colorResource(id = R.color.blue)
+                                } else {
+                                    colorResource(id = R.color.outline)
+                                },
+                                fontFamily = semiBold,
+                                fontSize = 10.sp,
+                                modifier = Modifier.padding(bottom = 5.dp),
+                                letterSpacing = 0.2.sp
+                            )
+                        },
+                        selected = selectedIndex == index,
+                        selectedContentColor = colorResource(id = R.color.blue),
+                        unselectedContentColor = colorResource(id = R.color.outline),
+                        onClick = { selectedIndex = index }
+
+                    )
+                }
+            }
+        }
+
+    )
+    {
+            innerClass ->
+        when (selectedIndex) {
+            0 -> {
+               MyEmployee()
+                isFabVisible.value = true
+            }
+
+            1 -> {
+                MyProfile()
+                isFabVisible.value = false
+            }
+
+            else ->  MyEmployee()
+        }
+        Column(Modifier.padding(innerClass)) {
+        }
+    }
+}
 
 
 

@@ -1,10 +1,15 @@
 package com.macapp.employeemanagement.components
 
 import android.content.Intent
-import android.util.Log
+import android.graphics.Paint.Align
+import android.net.Uri
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.expandVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,8 +22,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.CornerSize
-import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Button
@@ -34,20 +39,21 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
@@ -59,12 +65,10 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.rememberImagePainter
 import com.macapp.employeemanagement.R
 import com.macapp.employeemanagement.activity.AddEmployeeActivity
-import com.macapp.employeemanagement.activity.HomeActivity
-import com.macapp.employeemanagement.navigation.AppRouter
-import com.macapp.employeemanagement.navigation.Screen
-import com.macapp.employeemanagement.screens.AddNewEmployee
+
 import com.macapp.employeemanagement.ui.theme.componentShapes
 
 @Composable
@@ -116,7 +120,7 @@ fun NormalEmailText(value: String) {
         text = value, modifier = Modifier.padding(top = 20.dp), style = TextStyle(
             fontStyle = FontStyle.Normal,
             fontSize = 12.sp,
-            fontWeight = FontWeight.Normal, fontFamily = bold
+            fontWeight = FontWeight.Normal, fontFamily = bold,
         )
 
     )
@@ -138,18 +142,38 @@ fun TitleImageComponent() {
 }
 
 @Composable
-fun ImageComponent() {
+fun ImageComponent(onImageSelected: (Uri) -> Unit) {
 
-    Image(
-        modifier = Modifier
-            .size(400.dp, 140.dp)
-            .fillMaxWidth()
-            .heightIn(min = 40.dp)
-            .padding(top = 0.dp),
-        painter = painterResource(id = R.drawable.profilepic),
-        contentDescription = "",
-        alignment = Alignment.Center
-    )
+    var imageUri by remember {
+        mutableStateOf<Uri?>(null)
+    }
+    val launcher = rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent()) {uri: Uri? ->
+    imageUri=uri
+
+    }
+
+        Image(
+            modifier = Modifier
+                .clickable {
+                    launcher.launch("image/*")
+                    imageUri?.let { onImageSelected(it) }
+
+                }
+                .size(104.dp,104.dp).padding(top = 19.dp)
+                .clip(CircleShape),
+
+            painter = imageUri?.let { rememberImagePainter(it)  }
+                ?: painterResource(R.drawable.uploadempty),
+            contentDescription = "image uploader",
+            contentScale = ContentScale.Crop,
+
+
+
+        )
+
+
+
+
 
 
 }
@@ -269,12 +293,9 @@ fun ButtonComponent(value: String, onButtonClicked: () -> Unit, isEnabled: Boole
         enabled = isEnabled,
         contentPadding = PaddingValues(),
         onClick = {
-            val intent = Intent(context, HomeActivity()::class.java)
-            context.startActivity(intent)
 
-            AppRouter.navigateTo(Screen.MyEmployeeScreen)
+
             onButtonClicked.invoke()
-            Toast.makeText(context,"clicked",Toast.LENGTH_LONG).show()
         }
 
     )

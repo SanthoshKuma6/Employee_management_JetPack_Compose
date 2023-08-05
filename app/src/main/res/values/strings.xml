@@ -29,4 +29,7 @@
     <string name="title_activity_profile_view">ProfileViewActivity</string>
     <string name="back_arrow">Back</string>
     <string name="title_activity_login">LoginActivity</string>
+    <string name="title_activity_splash">SplashActivity</string>
+    <string name="title_activity_profile_details">ProfileDetailsActivity</string>
+    <string name="title_activity_edit_profile_details">EditProfileDetailsActivity</string>
 </resources>

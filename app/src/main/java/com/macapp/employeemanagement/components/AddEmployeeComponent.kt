@@ -1,6 +1,7 @@
 package com.macapp.employeemanagement.components
 
 import android.app.DatePickerDialog
+import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.widget.DatePicker
@@ -8,6 +9,7 @@ import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,7 +17,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Button
@@ -25,6 +29,7 @@ import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
+import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -43,17 +48,22 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.macapp.employeemanagement.R
-import com.macapp.employeemanagement.activity.HomeActivity
 import com.macapp.employeemanagement.model_class.login.DepartmentList
 import com.macapp.employeemanagement.network.ApiService
 import com.macapp.employeemanagement.network.Response
@@ -63,6 +73,7 @@ import com.macapp.employeemanagement.ui.theme.componentShapes
 import com.macapp.employeemanagement.viewmodel.LoginViewModel
 import com.macapp.employeemanagement.viewmodel.ViewModelFactory
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Calendar
@@ -88,6 +99,12 @@ fun AddEmployeeFieldComponent(
         singleLine = true,
         maxLines = 1,
         value = textValue.value,
+        colors = TextFieldDefaults.outlinedTextFieldColors(
+            focusedBorderColor = Color.Black,
+            focusedLabelColor = Color.White,
+            cursorColor = Color.White,
+            backgroundColor = Color.White
+        ),
         onValueChange = {
             textValue.value = it
             onTextSelected(it)
@@ -97,6 +114,20 @@ fun AddEmployeeFieldComponent(
         )
 }
 
+
+@Composable
+fun NormalEditText(value: String) {
+    val bold = FontFamily(Font(R.font.gothica1_regular))
+
+    Text(
+        text = value, modifier = Modifier.padding(top = 20.dp), style = TextStyle(
+            fontStyle = FontStyle.Normal,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Normal, fontFamily = bold,
+        ), textAlign = TextAlign.Start
+
+    )
+}
 
 @Composable
 fun AddAddressFieldComponent(
@@ -118,6 +149,12 @@ fun AddAddressFieldComponent(
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
         singleLine = true,
         maxLines = 1,
+        colors = TextFieldDefaults.outlinedTextFieldColors(
+            focusedBorderColor = Color.Black,
+            focusedLabelColor = Color.White,
+            cursorColor = Color.White,
+            backgroundColor = Color.White
+        ),
         value = textValue.value,
         onValueChange = {
             textValue.value = it
@@ -128,29 +165,6 @@ fun AddAddressFieldComponent(
         )
 }
 
-@Composable
-fun AdEmployeeButtonComponent() {
-    val context = LocalContext.current
-    Button(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(48.dp)
-            .background(Color.Blue),
-        onClick = {
-            val intent = Intent(context, HomeActivity()::class.java)
-            context.startActivity(intent)
-        },
-    ) {
-        Text(
-            text = "Add Employee",
-            fontSize = 18.sp,
-            color = Color.White,
-            fontWeight = FontWeight.Bold
-        )
-    }
-
-
-}
 
 
 @Composable
@@ -192,6 +206,12 @@ fun DropDownComponent(onTextSelected: (String) -> Unit) {
 
                     mTextFieldSize = coordinates.size.toSize()
                 },
+            colors = TextFieldDefaults.outlinedTextFieldColors(
+                focusedBorderColor = Color.Black,
+                focusedLabelColor = Color.White,
+                cursorColor = Color.White,
+                backgroundColor = Color.White
+            ),
             placeholder = { Text(text = "Select your department") },
 
             trailingIcon = {
@@ -243,7 +263,6 @@ fun DropDownComponent(onTextSelected: (String) -> Unit) {
         is Response.Success -> {
             result.data?.data?.let { departmentListItem.addAll(it) }
 
-
         }
 
         is Response.Error -> {
@@ -257,93 +276,4 @@ fun DropDownComponent(onTextSelected: (String) -> Unit) {
 
 
 
-
-
-@Composable
-fun DatePickerComponent(onTextSelected: (String) -> Unit) {
-    val context = LocalContext.current
-    val mYear: Int
-    val mMonth: Int
-    val mDay: Int
-    val mCalendar = Calendar.getInstance()
-    mYear = mCalendar.get(Calendar.YEAR)
-    mMonth = mCalendar.get(Calendar.MONTH)
-    mDay = mCalendar.get(Calendar.DAY_OF_MONTH)
-    mCalendar.time = Date()
-    val textValue = remember {
-        mutableStateOf("")
-    }
-    val mDate = remember { mutableStateOf("") }
-    val mDatePickerDialog = DatePickerDialog(
-        context,
-        { _: DatePicker, mYear: Int, mMonth: Int, mDayOfMonth: Int ->
-            mDate.value = "$mYear-${mMonth+1}-$mDayOfMonth"
-        }, mYear, mMonth, mDay
-
-    )
-    OutlinedTextField(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(componentShapes.small),
-        placeholder = { Text(text = "date of birth") },
-        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-        label = { Text(text = mDate.value)
-            onTextSelected(mDate.value)
-
-        },
-        singleLine = true,
-        maxLines = 1,
-        value = textValue.value,
-        onValueChange = {
-            textValue.value = it
-            onTextSelected(mDate.value)
-
-        },
-        trailingIcon = {
-            IconButton(onClick = { mDatePickerDialog.show() }) {
-                Icon(painter = painterResource(id = R.drawable.calender), contentDescription = "")
-            }
-
-        }
-
-
-    )
-}
-
-
-@Composable
-fun BackNavigationComponent(value: String, onTextSelected: (String) -> Unit) {
-
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(20.dp)
-            .heightIn(20.dp)
-    ) {
-        Image(painter = painterResource(id = R.drawable.back), contentDescription = "")
-        ClickableText(value = value, onTextSelected)
-    }
-
-}
-
-
-@Composable
-fun ClickableText(value: String, onTextSelected: (String) -> Unit) {
-    val annotatedString = buildAnnotatedString {
-        append(value)
-    }
-
-
-    ClickableText(modifier = Modifier, text = annotatedString, onClick = { offset ->
-        annotatedString.getStringAnnotations(offset, offset)
-            .firstOrNull()?.also { span1 ->
-                if ((span1.item == value)) {
-                    onTextSelected(span1.item)
-                }
-            }
-
-    })
-
-}
 

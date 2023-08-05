@@ -1,28 +1,19 @@
 package com.macapp.employeemanagement.viewmodel
 
-import android.text.TextUtils
 import android.util.Log
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.gson.JsonObject
-import com.macapp.employeemanagement.model_class.Validator
 import com.macapp.employeemanagement.model_class.login.AddEmployee
 import com.macapp.employeemanagement.model_class.login.DepartmentList
 import com.macapp.employeemanagement.model_class.login.EmployeeList
 import com.macapp.employeemanagement.model_class.login.LoginData
-import com.macapp.employeemanagement.model_class.login.LoginUIEvent
-import com.macapp.employeemanagement.model_class.login.LoginUIState
-import com.macapp.employeemanagement.navigation.AppRouter
-import com.macapp.employeemanagement.navigation.Screen
 import com.macapp.employeemanagement.network.Response
 import com.macapp.employeemanagement.repository.LoginRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import okhttp3.RequestBody
 
 class LoginViewModel(private val loginRepository: LoginRepository) : ViewModel() {
     private val userLogin = MutableStateFlow<Response<LoginData>>(Response.Loading(false))
@@ -74,12 +65,12 @@ class LoginViewModel(private val loginRepository: LoginRepository) : ViewModel()
 
     private val addEmployeeList=MutableStateFlow<Response<AddEmployee>>(Response.Loading(false))
     val addEmployeeState:StateFlow<Response<AddEmployee>> = addEmployeeList
-    fun addEmployee(token: String,jsonObject: JsonObject) {
+    fun addEmployee(token: String,requestBody: RequestBody) {
 
         viewModelScope.launch {
             addEmployeeList.value= Response.Loading(true)
             try {
-                val data= loginRepository.addEmployee(token,jsonObject)
+                val data= loginRepository.addEmployee(token,requestBody)
                 if (data.isSuccessful){
                     addEmployeeList.value=Response.Loading(false)
                     addEmployeeList.value=Response.Success(data.body())
@@ -119,6 +110,51 @@ class LoginViewModel(private val loginRepository: LoginRepository) : ViewModel()
 
     }
 
+
+    private val deleteEmployeeList=MutableStateFlow<Response<LoginData>>(Response.Loading(false))
+    val deleteEmployeeState:StateFlow<Response<LoginData>> = deleteEmployeeList
+
+    fun deleteEmployee(token:String,employeeId:String) {
+
+        viewModelScope.launch {
+            deleteEmployeeList.value= Response.Loading(true)
+            try {
+                val data= loginRepository.deleteEmployeeData(token,employeeId)
+                if (data.isSuccessful){
+                    deleteEmployeeList.value=Response.Loading(false)
+                    deleteEmployeeList.value=Response.Success(data.body())
+                } else{
+                    deleteEmployeeList.value=Response.Loading(false)
+                    deleteEmployeeList.value=Response.Error(data.message())
+                }
+            }catch (e:Exception){
+                Log.d("TAG", "login: ${e.message}")
+            }
+        }
+
+    }
+    private val updateEmployeeList=MutableStateFlow<Response<LoginData>>(Response.Loading(false))
+    val updateEmployeeState:StateFlow<Response<LoginData>> = updateEmployeeList
+
+
+    fun updateEmployee(employeeToken:String,method:String,token:String,requestBody: RequestBody) {
+        viewModelScope.launch {
+            updateEmployeeList.value= Response.Loading(true)
+            try {
+                val data= loginRepository.updateEmployeeData(employeeToken,method,token,requestBody)
+                if (data.isSuccessful){
+                    updateEmployeeList.value=Response.Loading(false)
+                    updateEmployeeList.value=Response.Success(data.body())
+                } else{
+                    updateEmployeeList.value=Response.Loading(false)
+                    updateEmployeeList.value=Response.Error(data.message())
+                }
+            }catch (e:Exception){
+                Log.d("TAG", "login: ${e.message}")
+            }
+        }
+
+    }
 
 
 

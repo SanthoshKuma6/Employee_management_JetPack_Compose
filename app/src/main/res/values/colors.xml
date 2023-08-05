@@ -21,5 +21,11 @@
     <color name="black_bold">#000000</color>
     <color name="border_color">#E0E0E0</color>
     <color name="light_white_text">#6D7278</color>
+    <color name="normal_text">#7C7F86</color>
+    <color name="outline">#BFBFBF</color>
+    <color name="placeholer">#e0e0e0</color>
+
+
+
 
 </resources>

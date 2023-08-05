@@ -97,10 +97,7 @@ class LoginActivity : ComponentActivity() {
 fun LoginScreen() {
     val (email, setEmail) = remember { mutableStateOf("") }
     val (password, setPassword) = remember { mutableStateOf("") }
-    val localFocusManager = LocalFocusManager.current
-    val passwordVisible = remember {
-        mutableStateOf(false)
-    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -144,7 +141,7 @@ fun LoginScreen() {
                     onTextSelected = {
                         setPassword(it)
                     })
-                Spacer(modifier = Modifier.height(50.dp))
+                Spacer(modifier = Modifier.height(0.dp))
                 LoginButtonComponent(value = "Login", email, password)
 
             }
@@ -204,19 +201,15 @@ fun LoginButtonComponent(value: String, email: String, password: String) {
 
         is Response.Success -> {
             val loginData = result.data!!.data!!.token
-
             DataStoredPreference(context).saveUSerData(loginData.toString())
-//            composableScope.launch {
-//                dataStore.saveEmail(loginData!!)
-//            }
-            val intent = Intent(context, HomeActivity::class.java)
+            val intent = Intent(context, MainActivity::class.java)
             context.startActivity(intent)
             Toast.makeText(context, "Login Successfully", Toast.LENGTH_LONG).show()
 
         }
 
         is Response.Error -> {
-            val errorMessage = result.errorMessage
+           Toast.makeText(context,result.errorMessage, Toast.LENGTH_LONG).show()
         }
 
         else -> {}
