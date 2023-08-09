@@ -70,7 +70,7 @@ class LoginViewModel(private val loginRepository: LoginRepository) : ViewModel()
         viewModelScope.launch {
             addEmployeeList.value= Response.Loading(true)
             try {
-                val data= loginRepository.addEmployee(token,requestBody)
+                val data= loginRepository.addEmployee("Bearer $token",requestBody)
                 if (data.isSuccessful){
                     addEmployeeList.value=Response.Loading(false)
                     addEmployeeList.value=Response.Success(data.body())
@@ -114,12 +114,12 @@ class LoginViewModel(private val loginRepository: LoginRepository) : ViewModel()
     private val deleteEmployeeList=MutableStateFlow<Response<LoginData>>(Response.Loading(false))
     val deleteEmployeeState:StateFlow<Response<LoginData>> = deleteEmployeeList
 
-    fun deleteEmployee(token:String,employeeId:String) {
+    fun deleteEmployee(employeeId:String,token:String,) {
 
         viewModelScope.launch {
             deleteEmployeeList.value= Response.Loading(true)
             try {
-                val data= loginRepository.deleteEmployeeData(token,employeeId)
+                val data= loginRepository.deleteEmployeeData(employeeId,"Bearer $token")
                 if (data.isSuccessful){
                     deleteEmployeeList.value=Response.Loading(false)
                     deleteEmployeeList.value=Response.Success(data.body())
@@ -135,13 +135,11 @@ class LoginViewModel(private val loginRepository: LoginRepository) : ViewModel()
     }
     private val updateEmployeeList=MutableStateFlow<Response<LoginData>>(Response.Loading(false))
     val updateEmployeeState:StateFlow<Response<LoginData>> = updateEmployeeList
-
-
     fun updateEmployee(employeeToken:String,method:String,token:String,requestBody: RequestBody) {
         viewModelScope.launch {
             updateEmployeeList.value= Response.Loading(true)
             try {
-                val data= loginRepository.updateEmployeeData(employeeToken,method,token,requestBody)
+                val data= loginRepository.updateEmployeeData(employeeToken,method,"Bearer $token",requestBody)
                 if (data.isSuccessful){
                     updateEmployeeList.value=Response.Loading(false)
                     updateEmployeeList.value=Response.Success(data.body())
@@ -153,97 +151,8 @@ class LoginViewModel(private val loginRepository: LoginRepository) : ViewModel()
                 Log.d("TAG", "login: ${e.message}")
             }
         }
-
     }
-
-
-
 }
-
-//    var loginUIState = mutableStateOf(LoginUIState())
-//    var loginInProcess = mutableStateOf(false)
-//    var allValidationPassed = mutableStateOf(false)
-//    var TAG = LoginViewModel::class.simpleName
-//
-//
-//    fun onEvent(event: LoginUIEvent) {
-//        when (event) {
-//            is LoginUIEvent.RegistrationNumberChanged -> {
-//                loginUIState.value =
-//                    loginUIState.value.copy(registrationNumber = event.registrationNumber)
-//                printState()
-//            }
-//
-//            is LoginUIEvent.PasswordChanged -> {
-//                loginUIState.value = loginUIState.value.copy(password = event.password)
-//                printState()
-//            }
-//
-//            is LoginUIEvent.LoginButtonClicked -> {
-//                login()
-//            }
-//        }
-//        validationWithRules()
-//    }
-//
-//
-//    private fun validationWithRules() {
-//        val registrationNumberResult =
-//            Validator.validateEmail(registrationNumber = loginUIState.value.registrationNumber)
-//        val passwordResult =
-//            Validator.validatePassword(password = loginUIState.value.password)
-//
-//        loginUIState.value = loginUIState.value.copy(
-//            emailError = registrationNumberResult.status,
-//            passwordError = passwordResult.status
-//        )
-//
-//        allValidationPassed.value = registrationNumberResult.status && passwordResult.status
-//    }
-//
-//    private fun printState() {
-//        Log.d(TAG, "printState:")
-//        Log.d(TAG, loginUIState.value.toString())
-//
-//    }
-
-//    private var loginResponse: List<LoginData.Data> by mutableStateOf(listOf())
-//    private var loginResponse: List<LoginData> by mutableStateOf(listOf())
-//    private var errorMessage: String by mutableStateOf("Authentication Failed")
-//    private val loginRepository by lazy { LoginRepository() }
-
-//    private fun login() {
-//
-//        loginInProcess.value = true
-//        val email = loginUIState.value.registrationNumber
-//        val password = loginUIState.value.password
-//        val jsonObject = JsonObject().apply {
-//            addProperty("email", email)
-//            addProperty("password", password)
-//        }
-//        viewModelScope.launch {
-//
-//            try {
-//               loginRepository.loginApi(jsonObject)
-////                loginResponse = data
-//                loginInProcess.value = true
-//                AppRouter.navigateTo(Screen.MyEmployeeScreen)
-//
-//            } catch (e: Exception) {
-//                loginInProcess.value = false
-//                errorMessage = e.message.toString()
-//            }
-//
-//        }
-//
-//
-//    }
-//
-//}
-
-
-
-
 
 
 

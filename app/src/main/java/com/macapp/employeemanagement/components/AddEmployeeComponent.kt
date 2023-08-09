@@ -13,6 +13,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -57,6 +58,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -88,6 +90,7 @@ fun AddEmployeeFieldComponent(
     val textValue = remember {
         mutableStateOf("")
     }
+    val regular=FontFamily(Font(R.font.sf_pro_regular))
 
     OutlinedTextField(
         modifier = Modifier
@@ -95,12 +98,12 @@ fun AddEmployeeFieldComponent(
             .padding(top = 10.dp)
             .clip(componentShapes.small),
         placeholder = { Text(text = labelValue) },
-        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-        singleLine = true,
+        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next,),
+        singleLine = true, textStyle = TextStyle(fontFamily = regular),
         maxLines = 1,
         value = textValue.value,
         colors = TextFieldDefaults.outlinedTextFieldColors(
-            focusedBorderColor = Color.Black,
+            focusedBorderColor = colorResource(id = R.color.border_color),
             focusedLabelColor = Color.White,
             cursorColor = Color.White,
             backgroundColor = Color.White
@@ -114,17 +117,51 @@ fun AddEmployeeFieldComponent(
         )
 }
 
+@Composable
+fun AddEmployeeFieldNumberComponent(
+    labelValue: String, onTextSelected: (String) -> Unit
+) {
 
+    val textValue = remember {
+        mutableStateOf("")
+    }
+    val regular=FontFamily(Font(R.font.sf_pro_regular))
+
+    OutlinedTextField(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 10.dp)
+            .clip(componentShapes.small),
+        placeholder = { Text(text = labelValue) },
+        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next, keyboardType = KeyboardType.Number),
+        singleLine = true,
+        maxLines = 1,
+        value = textValue.value,
+        colors = TextFieldDefaults.outlinedTextFieldColors(
+            focusedBorderColor = colorResource(id = R.color.border_color),
+            focusedLabelColor = Color.White,
+            cursorColor = Color.White,
+            backgroundColor = Color.White
+        ),textStyle = TextStyle(fontFamily = regular),
+        onValueChange = {
+            textValue.value = it
+            onTextSelected(it)
+        },
+
+
+        )
+}
 @Composable
 fun NormalEditText(value: String) {
     val bold = FontFamily(Font(R.font.gothica1_regular))
+    val semiBold = FontFamily(Font(R.font.sf_pro_semibold))
 
     Text(
         text = value, modifier = Modifier.padding(top = 20.dp), style = TextStyle(
             fontStyle = FontStyle.Normal,
             fontSize = 12.sp,
             fontWeight = FontWeight.Normal, fontFamily = bold,
-        ), textAlign = TextAlign.Start
+        ), textAlign = TextAlign.Start, fontFamily = semiBold
 
     )
 }
@@ -138,11 +175,12 @@ fun AddAddressFieldComponent(
         mutableStateOf("")
     }
 
-
+    val regular = FontFamily(Font(R.font.gothica1_regular))
+    val semiBold = FontFamily(Font(R.font.sf_pro_semibold))
     OutlinedTextField(
         modifier = Modifier
             .fillMaxWidth()
-            .height(116.dp)
+            .fillMaxHeight()
             .padding(top = 10.dp)
             .clip(componentShapes.small),
         placeholder = { Text(text = labelValue) },
@@ -150,12 +188,12 @@ fun AddAddressFieldComponent(
         singleLine = true,
         maxLines = 1,
         colors = TextFieldDefaults.outlinedTextFieldColors(
-            focusedBorderColor = Color.Black,
+            focusedBorderColor = colorResource(id = R.color.border_color),
             focusedLabelColor = Color.White,
             cursorColor = Color.White,
             backgroundColor = Color.White
         ),
-        value = textValue.value,
+        value = textValue.value, textStyle = TextStyle(fontFamily = regular),
         onValueChange = {
             textValue.value = it
             onTextSelected(it)
@@ -169,6 +207,7 @@ fun AddAddressFieldComponent(
 
 @Composable
 fun DropDownComponent(onTextSelected: (String) -> Unit) {
+    val regular=FontFamily(Font(R.font.sf_pro_regular))
     val departmentListItem: ArrayList<DepartmentList.Data?> = ArrayList()
     var boolean by remember {
         mutableStateOf(false)
@@ -207,13 +246,13 @@ fun DropDownComponent(onTextSelected: (String) -> Unit) {
                     mTextFieldSize = coordinates.size.toSize()
                 },
             colors = TextFieldDefaults.outlinedTextFieldColors(
-                focusedBorderColor = Color.Black,
+                focusedBorderColor = colorResource(id = R.color.border_color),
                 focusedLabelColor = Color.White,
                 cursorColor = Color.White,
                 backgroundColor = Color.White
             ),
             placeholder = { Text(text = "Select your department") },
-
+            textStyle = TextStyle(fontFamily = regular),
             trailingIcon = {
                 Icon(icon, "contentDescription",
                     Modifier.clickable {

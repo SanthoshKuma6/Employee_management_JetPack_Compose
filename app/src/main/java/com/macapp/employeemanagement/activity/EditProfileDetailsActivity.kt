@@ -66,7 +66,9 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.macapp.employeemanagement.R
+import com.macapp.employeemanagement.activity.ui.theme.PurpleGrey80
 import com.macapp.employeemanagement.model_class.login.DepartmentList
 import com.macapp.employeemanagement.network.ApiService
 import com.macapp.employeemanagement.network.Response
@@ -75,6 +77,7 @@ import com.macapp.employeemanagement.repository.LoginRepository
 import com.macapp.employeemanagement.ui.theme.EmployeeManagementTheme
 import com.macapp.employeemanagement.viewmodel.LoginViewModel
 import com.macapp.employeemanagement.viewmodel.ViewModelFactory
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
@@ -85,16 +88,35 @@ import java.util.Calendar
 class EditProfileDetailsActivity : ComponentActivity() {
     private val departmentListData: ArrayList<DepartmentList.Data?> by lazy { arrayListOf() }
     private val departmentName: ArrayList<String> by lazy { arrayListOf() }
+    @SuppressLint("CoroutineCreationDuringComposition")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             EmployeeManagementTheme {
+                val systemUiController = rememberSystemUiController()
+                var serverCall by remember {
+                    mutableStateOf(false)
+                }
+                val coroutineScope = rememberCoroutineScope()
+
+                val statusBarColor = colorResource(id = R.color.white)
+                systemUiController.setStatusBarColor(statusBarColor)
                 val viewModel: LoginViewModel = viewModel(
                     factory = ViewModelFactory(
                         LoginRepository(ApiService.NetworkClient.apiService)
                     )
                 )
+                val loginToken = DataStoredPreference(this).getUSerData()["loginToken"]
+
                 val intent = intent
+
+                if (!serverCall){
+                    coroutineScope.launch {
+                        viewModel.departmentList(loginToken.toString())
+                        serverCall= true
+                    }
+
+                }
                 val dropDownState = viewModel.departmentState.collectAsStateWithLifecycle()
                 when (val result = dropDownState.value) {
                     is Response.Loading -> {}
@@ -102,11 +124,10 @@ class EditProfileDetailsActivity : ComponentActivity() {
                     is Response.Success -> {
                         result.data?.data?.let { departmentListData.addAll(it) }
                         for (i in result.data?.data!!) {
-                            i?.name.let { it1 ->
-                                if (it1 != null) {
-                                    departmentName.add(it1)
-                                }
+                            i?.name?.let { it1 ->
+                                departmentName.add(it1)
                             }
+
                         }
                     }
 
@@ -118,9 +139,9 @@ class EditProfileDetailsActivity : ComponentActivity() {
                     else -> {}
                 }
                 if (intent.hasExtra("employeeList")) {
-                    EmployeeEditDetails(departmentName, departmentListData, intent)
+                    EmployeeEditDetails(departmentListData, departmentName, intent)
                 }
-                EmployeeEditDetails(departmentName, departmentListData, intent)
+                EmployeeEditDetails(departmentListData, departmentName, intent)
             }
         }
     }
@@ -130,10 +151,11 @@ class EditProfileDetailsActivity : ComponentActivity() {
 @SuppressLint("CoroutineCreationDuringComposition")
 @Composable
 fun EmployeeEditDetails(
-    departmentDetailData: ArrayList<String>,
-    departmentName: ArrayList<DepartmentList.Data?>,
+    departmentListData: ArrayList<DepartmentList.Data?>,
+    departmentName: ArrayList<String>,
     intent: Intent,
 ) {
+
     val semiBold = FontFamily(Font(R.font.sf_pro_semibold))
     val bold = FontFamily(Font(R.font.sf_pro_bold))
     val regular = FontFamily(Font(R.font.sf_pro_regular))
@@ -146,18 +168,21 @@ fun EmployeeEditDetails(
         )
     )
     var imageUri by remember { mutableStateOf<Uri?>(null) }
-    val launcher = rememberLauncherForActivityResult(contract =
-    ActivityResultContracts.GetContent()) { uri: Uri? ->
+    val launcher = rememberLauncherForActivityResult(
+        contract =
+        ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
         imageUri = uri
     }
+    val loginToken = DataStoredPreference(context).getUSerData()["loginToken"]
 
     val employeeName = intent.extras?.getString("name").toString()
-    val dateBirth = intent.extras?.getString("dob").toString()
-    val employeeBloodGroup = intent.extras?.getString("blood").toString()
-    val emailAddress = intent.extras?.getString("email").toString()
-    val employeeAddress = intent.extras?.getString("address").toString()
-    val employeeNumber = intent.extras?.getString("number").toString()
     val department = intent.extras?.getString("department").toString()
+    val emailAddress = intent.extras?.getString("email").toString()
+    val employeeNumber = intent.extras?.getString("number").toString()
+    val dateOfBirth = intent.extras?.getString("dob").toString()
+    val employeeBloodGroup = intent.extras?.getString("blood").toString()
+    val employeeAddress = intent.extras?.getString("address").toString()
     val image = intent.extras?.getString("image").toString()
     val token = intent.extras?.getString("token").toString()
 
@@ -168,13 +193,15 @@ fun EmployeeEditDetails(
     val (bloodGroup, setBloodGroup) = remember { mutableStateOf(employeeBloodGroup) }
     val (address, setAddress) = remember { mutableStateOf(employeeAddress) }
     val selectedDepartment = remember { mutableStateOf(department) }
-    val selectedDateOfBirth = remember { mutableStateOf(dateBirth) }
+    val selectedDateOfBirth = remember { mutableStateOf(dateOfBirth) }
+    val departmentToken = remember { mutableStateOf("") }
 
-
+    Log.d("mydep", "EmployeeEditDetails: $selectedDepartment")
 
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .padding(top = 18.dp)
             .verticalScroll(rememberScrollState())
             .background(colorResource(id = R.color.login_background))
     ) {
@@ -188,16 +215,17 @@ fun EmployeeEditDetails(
         ) {
             Image(
                 modifier = Modifier
-                    .padding(16.dp)
+                    .padding(bottom = 12.dp)
                     .clickable { onBackPressedCallback.onBackPressed() },
                 painter = painterResource(id = R.drawable.back),
                 contentDescription = ""
             )
+            Spacer(modifier = Modifier.width(5.dp))
             androidx.compose.material.Text(text = "Back",
                 color = colorResource(id = R.color.blue),
                 fontSize = 16.sp,
                 modifier = Modifier
-                    .padding(start = 5.dp)
+                    .padding(bottom = 12.dp)
                     .clickable {
                         onBackPressedCallback.onBackPressed()
                     })
@@ -206,7 +234,7 @@ fun EmployeeEditDetails(
                 fontSize = 16.sp,
                 fontFamily = semiBold,
                 color = Color.Black,
-                modifier = Modifier.padding(start = 50.dp)
+                modifier = Modifier.padding(start = 50.dp, top = 10.dp, bottom = 15.dp)
             )
 
 
@@ -218,14 +246,17 @@ fun EmployeeEditDetails(
         ) {
             Spacer(modifier = Modifier.height(30.dp))
             Image(
-                painter = imageUri?.let { rememberAsyncImagePainter(model = it) }
-                    ?: image.let { rememberAsyncImagePainter(model = it) }
-                    ?: painterResource(id = R.drawable.uploadempty),
+                painter = imageUri?.let { rememberAsyncImagePainter(it) }
+                    ?: image?.let { rememberAsyncImagePainter(it) }
+                    ?: painterResource(R.drawable.uploadempty),
                 contentDescription = "Upload Image",
                 modifier = Modifier
                     .size(width = 104.dp, height = 104.dp)
                     .clip(CircleShape)
-                    .align(Alignment.CenterHorizontally),
+                    .align(Alignment.CenterHorizontally)
+                    .clickable {
+                        launcher.launch("image/*")
+                    },
 
                 contentScale = ContentScale.Crop
             )
@@ -238,6 +269,9 @@ fun EmployeeEditDetails(
                 color = Color.Black,
                 modifier = Modifier.padding(start = 20.dp)
             )
+
+
+            ///NAME
             OutlinedTextField(
                 value = name,
                 singleLine = true,
@@ -267,6 +301,7 @@ fun EmployeeEditDetails(
                 )
             )
             Spacer(modifier = Modifier.height(10.dp))
+
             androidx.compose.material3.Text(
                 text = "Department",
                 fontSize = 12.sp,
@@ -279,12 +314,19 @@ fun EmployeeEditDetails(
                     .fillMaxSize()
                     .padding(start = 10.dp, end = 10.dp)
             ) {
+
+                //DEPARTMENT
                 EditDropdownOutlinedTextField(
                     label = "",
-                    items = departmentDetailData,
+                    items = departmentName,
                     selectedItem = selectedDepartment.value,
-                    onValueChange = { selectedDepartment.value = it }
+                    onValueChange = {
+                        selectedDepartment.value = it
+                    }
+
                 )
+
+
             }
             Spacer(modifier = Modifier.height(10.dp))
             androidx.compose.material3.Text(
@@ -294,6 +336,9 @@ fun EmployeeEditDetails(
                 color = Color.Black,
                 modifier = Modifier.padding(start = 20.dp)
             )
+
+
+            //EMAIL
             OutlinedTextField(
                 value = email,
                 singleLine = true,
@@ -330,8 +375,11 @@ fun EmployeeEditDetails(
                 color = Color.Black,
                 modifier = Modifier.padding(start = 20.dp)
             )
+
+
+            //NUMBER
             OutlinedTextField(
-                value = employeeNumber,
+                value = number,
                 singleLine = true,
                 placeholder = {
                     androidx.compose.material3.Text(
@@ -366,10 +414,14 @@ fun EmployeeEditDetails(
                 color = Color.Black,
                 modifier = Modifier.padding(start = 20.dp)
             )
+
+
+            //DOB
             DateOutlinedEditTextField(
                 label = "",
                 selectedDate = selectedDateOfBirth.value,
                 onDateSelected = { selectedDateOfBirth.value = it }
+
             )
             Spacer(modifier = Modifier.height(10.dp))
             androidx.compose.material3.Text(
@@ -379,8 +431,11 @@ fun EmployeeEditDetails(
                 color = Color.Black,
                 modifier = Modifier.padding(start = 20.dp)
             )
+
+
+            //BLOOD GROUP
             OutlinedTextField(
-                value = employeeBloodGroup,
+                value = bloodGroup,
                 singleLine = true,
                 placeholder = {
                     androidx.compose.material3.Text(
@@ -415,6 +470,8 @@ fun EmployeeEditDetails(
                 color = Color.Black,
                 modifier = Modifier.padding(start = 20.dp)
             )
+
+            //ADDRESS
             OutlinedTextField(
                 value = address,
                 singleLine = true,
@@ -445,17 +502,24 @@ fun EmployeeEditDetails(
             )
             Spacer(modifier = Modifier.height(20.dp))
             val buttonClicked = remember { mutableStateOf(false) }
-            val departmentToken = remember { mutableStateOf("") }
-            val logintoken=DataStoredPreference(context).getUSerData()["loginToken"]
+//            departmentListData.map {
+//                if (selectedDepartment.value == it?.name) {
+//                    departmentToken.value = it.token.toString()
+//
+//                }
+//            }
             androidx.compose.material3.Button(
                 onClick = {
-                    departmentName.map {
-                        if (selectedDepartment.value == it?.name) {
-                            departmentToken.value = it.token.toString()
+                    for (i in departmentListData){
+                        if (i?.name==selectedDepartment.value){
+                            departmentToken.value=(i.token.toString())
                         }
+                        Log.d(
+                            "selectedDepartment",
+                            "EmployeeEditDetails: ${selectedDepartment.value}"
+                        )
+
                     }
-
-
 
                     departmentToken.value
                     val emailPattern = "[a-zA-Z0-9._-]+@[a-z]+.+[a-z]+.+[a-z]+"
@@ -468,49 +532,44 @@ fun EmployeeEditDetails(
                     } else if (!email.matches(emailPattern.toRegex())) {
                         Toast.makeText(
                             context,
-                            "Enter your correct email address",
+                            "Please Check your  Email Address",
                             Toast.LENGTH_SHORT
                         )
+
                             .show()
                     } else {
-
                         buttonClicked.value = true
-//                        val photoPart = requestBody?.let {
-//                            MultipartBody.Part.createFormData("photo", "photo.png",
-//                                it
-//                            )
-//                        }
-//                        if
-
                         if (imageUri == null) {
-                            var url = image
-                            val filename = url.substringAfterLast("/")
-                            Log.d("TAG", "EditEmploy: " + name)
+                            val file = image.substringAfterLast("/")
+                            Log.d("Editable", "Edit: ${departmentToken.value}")
 
                             val builder = MultipartBody.Builder().setType(MultipartBody.FORM)
                             builder.addFormDataPart("name", name)
                             builder.addFormDataPart("email", email)
                             builder.addFormDataPart("department_token", departmentToken.value)
                             builder.addFormDataPart("date_of_birth", selectedDateOfBirth.value)
-                            builder.addFormDataPart("mobile_number", employeeNumber)
+                            builder.addFormDataPart("mobile_number", number)
                             builder.addFormDataPart("address", address)
-                            builder.addFormDataPart("blood_group", employeeBloodGroup)
+                            builder.addFormDataPart("blood_group", bloodGroup)
                             builder.addFormDataPart("token", token)
-                            builder.addFormDataPart("photo", filename)
+                            builder.addFormDataPart("photo", file)
                             val addEmployeeData = builder.build()
-
-
                             coroutineScope.launch {
                                 viewModel.updateEmployee(
                                     token,
                                     "PATCH",
-                                    logintoken.toString(),
+                                    loginToken.toString(),
                                     addEmployeeData
                                 )
+                                Log.d(
+                                    "tag",
+                                    "EmployeeEditDetails: $token ${loginToken.toString()}  $addEmployeeData"
+                                )
+
                             }
 
                         } else {
-                            var requestBody = context.contentResolver.openInputStream(imageUri!!)
+                            val requestBody = context.contentResolver.openInputStream(imageUri!!)
                                 ?.use { inputStream ->
                                     inputStream.readBytes()
                                         .toRequestBody("image/*".toMediaTypeOrNull())
@@ -519,22 +578,25 @@ fun EmployeeEditDetails(
                             builder.addFormDataPart("name", name)
                             builder.addFormDataPart("email", email)
                             builder.addFormDataPart("department_token", departmentToken.value)
-                            builder.addFormDataPart("date_of_birth", selectedDateOfBirth.toString())
-                            builder.addFormDataPart("mobile_number", employeeNumber)
+                            builder.addFormDataPart("date_of_birth", selectedDateOfBirth.value)
+                            builder.addFormDataPart("mobile_number", number)
                             builder.addFormDataPart("address", address)
-                            builder.addFormDataPart("blood_group", employeeBloodGroup)
-                            builder.addFormDataPart("token", token.toString())
+                            builder.addFormDataPart("blood_group", bloodGroup)
+                            builder.addFormDataPart("token", token)
                             builder.addFormDataPart("photo", "jpg", requestBody!!)
                             val addEmployeeData = builder.build()
-
-
                             coroutineScope.launch {
                                 viewModel.updateEmployee(
                                     token,
                                     "PATCH",
-                                    logintoken.toString(),
+                                    loginToken.toString(),
                                     addEmployeeData
                                 )
+                                Log.d(
+                                    "tag",
+                                    "EmployeeEditDetails: $token ${loginToken.toString()}  $addEmployeeData"
+                                )
+
                             }
                         }
                     }
@@ -553,18 +615,20 @@ fun EmployeeEditDetails(
                     fontFamily = bold
                 )
             }
+            Spacer(modifier = Modifier.height(30.dp))
 
         }
-        val deleteState = viewModel.updateEmployeeState.collectAsStateWithLifecycle()
-        when (val result = deleteState.value) {
+        val updateState = viewModel.updateEmployeeState.collectAsStateWithLifecycle()
+        when (val result = updateState.value) {
             is Response.Loading -> {}
 
             is Response.Success -> {
                 val intent = Intent(context, MainActivity::class.java)
                 context.startActivity(intent)
             }
+
             is Response.Error -> {
-                Toast.makeText(context,result.errorMessage,Toast.LENGTH_LONG).show()
+                Toast.makeText(context, result.errorMessage, Toast.LENGTH_LONG).show()
 
             }
         }
@@ -593,9 +657,10 @@ fun DateOutlinedEditTextField(
 
 
     TextField(
-        modifier = Modifier.padding(start = 16.dp, end = 16.dp)
+        modifier = Modifier
+            .padding(start = 16.dp, end = 16.dp)
             .fillMaxWidth()
-            .border(1.dp, colorResource(id = R.color.light_white_text), RoundedCornerShape(4.dp)),
+            .border(1.dp, colorResource(id = R.color.border_color), RoundedCornerShape(4.dp)),
         value = selectedDate,
 
         colors = TextFieldDefaults.textFieldColors(
@@ -603,9 +668,10 @@ fun DateOutlinedEditTextField(
             cursorColor = Color.Black,
             disabledLabelColor = Color.White,
             focusedIndicatorColor = Color.Transparent,
-            unfocusedIndicatorColor = Color.Transparent
+            unfocusedIndicatorColor = Color.Transparent,
 
-        ),
+
+            ),
 
         shape = RoundedCornerShape(4.dp),
         onValueChange = onDateSelected,

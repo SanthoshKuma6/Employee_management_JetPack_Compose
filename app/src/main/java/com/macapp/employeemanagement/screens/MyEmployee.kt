@@ -2,7 +2,6 @@ package com.macapp.employeemanagement.screens
 
 import android.annotation.SuppressLint
 import android.content.Intent
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -27,10 +26,10 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.LocalTextStyle
-import androidx.compose.material3.Divider
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
@@ -55,14 +54,17 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.macapp.employeemanagement.R
 import com.macapp.employeemanagement.activity.AddEmployeeActivity
 import com.macapp.employeemanagement.activity.ProfileDetailsActivity
+import com.macapp.employeemanagement.activity.ui.theme.PurpleGrey80
 import com.macapp.employeemanagement.model_class.login.EmployeeList
 import com.macapp.employeemanagement.network.ApiService
 import com.macapp.employeemanagement.network.Response
@@ -73,10 +75,14 @@ import com.macapp.employeemanagement.viewmodel.ViewModelFactory
 import kotlinx.coroutines.launch
 import java.util.Locale
 
-@SuppressLint("CoroutineCreationDuringComposition")
+@SuppressLint("CoroutineCreationDuringComposition", "UnrememberedMutableState")
 @Composable
 fun MyEmployee() {
+    val systemUiController = rememberSystemUiController()
+    val statusBarColor = colorResource(id = R.color.login_background)
+    systemUiController.setStatusBarColor(statusBarColor)
     val employeeList: ArrayList<EmployeeList.Data?> = ArrayList()
+    val isLoading = mutableStateOf(false)
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val viewModel: LoginViewModel = viewModel(
@@ -104,352 +110,45 @@ fun MyEmployee() {
 
         }
 
-            val employeeState = viewModel.employeeState.collectAsStateWithLifecycle()
-            when (val result = employeeState.value) {
-                is Response.Loading -> {}
-
-                is Response.Success -> {
-                    result.data?.data?.let { it1 ->
-
-                        HomeMainScreen(it1)
-                        employeeList.clear()
-                        employeeList.addAll(it1)
-                    }
+        val employeeState = viewModel.employeeState.collectAsStateWithLifecycle()
+        when (val result = employeeState.value) {
+            is Response.Loading -> {
+                Box(modifier = Modifier
+                    .align(Alignment.Center)) {
+                    CircularProgressIndicator(
+                        color = colorResource(id = R.color.blue),
+                        strokeWidth = 3.dp
+                    )
                 }
 
-                is Response.Error -> {
-                    val errorMessage = result.errorMessage
-                    Toast.makeText(context, "$errorMessage", Toast.LENGTH_LONG).show()
-                }
 
-                else -> {}
             }
 
+            is Response.Success -> {
+                result.data?.data?.let { it1 ->
+                    HomeMainScreen(it1)
+                    employeeList.clear()
+                    employeeList.addAll(it1)
+                }
+            }
+
+            is Response.Error -> {
+                val errorMessage = result.errorMessage
+                Toast.makeText(context, "$errorMessage", Toast.LENGTH_LONG).show()
+            }
+
+            else -> {}
         }
 
-
-    }
-
-
-
-@SuppressLint("SuspiciousIndentation")
-@OptIn(ExperimentalMaterialApi::class)
-@Composable
-fun FeatureItem(data: EmployeeList.Data?) {
-    val bold = FontFamily(Font(R.font.sf_pro_bold))
-
-    val context = LocalContext.current
-//New code base
-
-    Box(
-        modifier = Modifier
-            .background(color = colorResource(id = R.color.white))
-            .border(
-                width = 1.dp,
-                color = colorResource(id = R.color.border_color),
-                shape = RoundedCornerShape(4.dp)
-            )
-
-    ) {
-
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-            modifier = Modifier.padding(top = 20.dp, bottom = 20.dp)
-        ) {
-            Spacer(modifier = Modifier.height(19.dp))
-            Image(
-                modifier = Modifier
-                    .width(64.dp)
-                    .height(64.dp)
-                    .clip(CircleShape),
-                contentScale = ContentScale.Crop,
-                painter = rememberAsyncImagePainter(model = data?.photo),
-                contentDescription = "",
-            )
-            Spacer(modifier = Modifier.height(9.dp))
-
-            Text(
-                text = data?.name.toString(),
-                maxLines = 1,
-                fontSize = 15.sp,
-
-                )
-            Spacer(modifier = Modifier.height(6.dp))
-            Box(
-                modifier = Modifier
-
-                    .wrapContentSize()
-                    .padding(start = 15.dp, end = 15.dp)
-                    .clip(shape = RoundedCornerShape(14.dp))
-                    .background(
-                        colorResource(id = R.color.card_background)
-                    )
-            ) {
-                Text(
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                        .padding(start = 12.dp, top = 5.dp, bottom = 5.dp, end = 12.dp),
-                    text = data?.departmentName.toString(),
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 11.sp,
-                    letterSpacing = 0.01.sp,
-                    color = colorResource(id = R.color.light_white_text),
-                    maxLines = 1
-                )
-            }
-            Spacer(modifier = Modifier.height(14.dp))
-            Divider(
-                thickness = 1.dp,
-                modifier = Modifier.padding(start = 16.dp, end = 16.dp),
-                color = colorResource(id = R.color.divider_color)
-            )
-            Spacer(modifier = Modifier.height(11.dp))
-
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 15.dp, end = 15.dp)
-            )
-            {
-
-                Box(modifier = Modifier
-                    .padding(end = 2.dp)
-                    .height(28.dp)
-                    .fillMaxWidth()
-                    .weight(1f)
-                    .clip(CircleShape)
-                    .background(
-                        colorResource(
-                            id = R.color.white
-                        ), shape = RoundedCornerShape(14.dp)
-                    )
-                    .border(
-                        1.dp, colorResource(
-                            id = R.color.blue
-                        ), shape = RoundedCornerShape(14.dp)
-                    )
-                    .clickable { }
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxHeight()
-                            .fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.mail_logo),
-                            contentDescription = "description",
-                            modifier = Modifier
-                                .height(15.dp)
-                                .width(18.dp)
-                                .padding(end = 4.dp)
-                        )
-                        Text(
-                            text = "Mail",
-                            fontWeight = FontWeight.Medium,
-                            fontSize = 14.sp,
-                            color = colorResource(
-                                id = R.color.blue
-                            )
-                        )
-
-                    }
-
-                }
-
-                Box(modifier = Modifier
-                    .padding(start = 2.dp)
-                    .height(28.dp)
-                    .fillMaxWidth()
-                    .weight(1f)
-                    .clip(CircleShape)
-                    .background(
-                        colorResource(
-                            id = R.color.white
-                        ), shape = RoundedCornerShape(14.dp)
-                    )
-                    .border(
-                        1.dp, colorResource(
-                            id = R.color.blue
-                        ), shape = RoundedCornerShape(14.dp)
-                    )
-                    .clickable { }
-                ) {
-
-                    Row(
-                        modifier = Modifier
-                            .fillMaxHeight()
-                            .fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.call_logo),
-                            contentDescription = "description",
-                            modifier = Modifier
-                                .height(15.dp)
-                                .width(18.dp)
-                                .padding(end = 4.dp)
-                        )
-                        Text(
-                            text = "Call",
-                            fontSize = 14.sp,
-                            color = colorResource(id = R.color.blue)
-                        )
-
-                    }
-                }
-
-            }
-
-
-        }
-
-
-        ////OLf Code base
-//    BoxWithConstraints(
-//        modifier = Modifier
-//            .height(214.dp)
-//            .fillMaxWidth()
-//            .clip(RoundedCornerShape(4.dp))
-//            .padding(end = 9.dp)
-//            .border(1.dp, color = colorResource(id = R.color.border_color))
-//            .aspectRatio(0.8f)
-//            .background(colorResource(id = R.color.white)),
-//    ) {
-//
-//
-//        rememberAsyncImagePainter(model = data?.photo)
-//
-//        Image(
-//            painter = rememberAsyncImagePainter(model = data?.photo),
-//            contentDescription = "",
-//            modifier = Modifier
-//                .padding(top = 19.dp)
-//                .size(64.dp, 64.dp)
-//                .clip(CircleShape)
-//                .align(
-//                    Alignment.TopCenter
-//                ), contentScale = ContentScale.Crop
-//        )
-//
-//        Column(
-//            modifier = Modifier
-////                .align(Alignment.Center)
-//                .padding(top = 92.dp, start = 2.dp)
-//        ) {
-//            Text(
-//                text = data?.name.toString(),
-////                text=features.title,
-//                color = Color.Black,
-//                style = TextStyle(fontWeight = FontWeight.ExtraBold, fontSize = 16.sp),
-//                modifier = Modifier
-//                    .align(Alignment.CenterHorizontally),
-//                fontFamily = bold, maxLines = 1, overflow = TextOverflow.Ellipsis
-//            )
-//            Card(
-//                modifier = Modifier
-//                    .padding(top = 6.dp)
-//                    .align(Alignment.CenterHorizontally), colors = CardDefaults.cardColors(
-//                    colorResource(id = R.color.login_background),
-//                ), shape = RoundedCornerShape(14.dp)
-//            ) {
-//                Text(
-//                    text = data?.departmentName.toString(),
-//                    style = TextStyle(
-//                        fontSize = 12.sp
-//                    ),
-//                    color = colorResource(id = R.color.light_white_text),
-//                    textAlign = TextAlign.Center, modifier = Modifier.padding(6.dp),
-//                )
-//
-//            }
-//            Divider(
-//                modifier = Modifier
-//                    .padding(top = 8.dp, start = 10.dp, end = 10.dp),
-//                color = colorResource(id = R.color.divider_color)
-//            )
-//            Spacer(modifier = Modifier.height(12.dp))
-//
-//
-//            Row(
-//                verticalAlignment = Alignment.CenterVertically,
-//                horizontalArrangement = Arrangement.Center,
-//
-//                ) {
-//                Chip(
-//                    modifier = Modifier.padding(bottom = 17.dp),
-//                    onClick = {},
-//                    border = BorderStroke(1.dp, colorResource(id = R.color.blue)),
-//                    colors = ChipDefaults.outlinedChipColors(),
-//                ) {
-//                    Row(
-//                        verticalAlignment = Alignment.CenterVertically,
-//                        horizontalArrangement = Arrangement.SpaceEvenly
-//                    ) {
-//                        Image(
-//                            painter = painterResource(id = R.drawable.mail_logo),
-//                            contentDescription = "",
-//                            modifier = Modifier.size(14.dp)
-//                        )
-//                        Spacer(modifier = Modifier.width(1.dp))
-//
-//                        Text(
-//                            text = "Mail",
-//                            fontSize = 14.sp,
-//                            modifier = Modifier.padding(start = 1.dp),
-//                            color = colorResource(id = R.color.blue)
-//                        )
-//
-//                    }
-//                }
-//                Spacer(modifier = Modifier.width(4.dp))
-//
-//                Chip(
-//                    modifier = Modifier.padding(bottom = 17.dp),
-//
-//                    onClick = {},
-//                    border = BorderStroke(1.dp, colorResource(id = R.color.blue)),
-//                    colors = ChipDefaults.outlinedChipColors(),
-//                ) {
-//                    Row(verticalAlignment = Alignment.CenterVertically) {
-//                        Image(
-//                            painter = painterResource(id = R.drawable.call_logo),
-//                            contentDescription = "",
-//                            modifier = Modifier.size(14.dp)
-//                        )
-//                        Spacer(modifier = Modifier.width(1.dp))
-//                        Text(
-//                            text = "Call",
-//                            fontSize = 14.sp,
-//                            modifier = Modifier.padding(start = 2.dp),
-//                            color = colorResource(id = R.color.blue)
-//                        )
-//
-//                    }
-//                }
-//
-//
-//            }
-//
-//        }
-//
-//
     }
 
 
 }
 
-
 @SuppressLint("ResourceType")
 @Composable
 fun HomeMainScreen(data: List<EmployeeList.Data?>) {
-//        val systemUiController = rememberSystemUiController()
-//        val statusBarColor = colorResource(id = R.color.white)
-//        systemUiController.setStatusBarColor(statusBarColor)
+
     val bold = FontFamily(Font(R.font.sf_pro_bold))
     val context = LocalContext.current
 
@@ -481,7 +180,7 @@ fun HomeMainScreen(data: List<EmployeeList.Data?>) {
                         modifier = Modifier.padding(start = 16.dp),
                         textAlign = TextAlign.Center,
                         letterSpacing = 0.1.sp,
-                        fontSize = 32.sp,
+                        fontSize = 30.sp,
                         fontFamily = bold
                     )
                     Image(
@@ -494,7 +193,7 @@ fun HomeMainScreen(data: List<EmployeeList.Data?>) {
                 }
                 Spacer(modifier = Modifier.height(15.dp))
                 Text(
-                    text = "${data.size}Employees",
+                    text = "${data.size} Employees",
                     fontWeight = FontWeight.Bold,
                     color = Color.Black,
                     modifier = Modifier.padding(start = 16.dp),
@@ -509,9 +208,9 @@ fun HomeMainScreen(data: List<EmployeeList.Data?>) {
 
         }
         Spacer(modifier = Modifier.height(16.dp))
-     FloatingActionButton(
+        FloatingActionButton(
             onClick = {
-               val intent=Intent(context,AddEmployeeActivity::class.java)
+                val intent = Intent(context, AddEmployeeActivity::class.java)
                 context.startActivity(intent)
             },
             modifier = Modifier
@@ -551,7 +250,7 @@ fun employeeListView(employeeListData: List<EmployeeList.Data?>, isVisibility: B
 
             OutlinedTextField(
                 value = searchQuery,
-                singleLine = true,
+                singleLine = true, shape = RoundedCornerShape(25.dp),
                 placeholder = {
                     Text(
                         "Search Employee",
@@ -562,6 +261,7 @@ fun employeeListView(employeeListData: List<EmployeeList.Data?>, isVisibility: B
                         textAlign = TextAlign.Start
                     )
                 },
+
                 textStyle = LocalTextStyle.current.copy(fontSize = 14.sp),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -580,7 +280,8 @@ fun employeeListView(employeeListData: List<EmployeeList.Data?>, isVisibility: B
         }
         val filteredEmployeeList = if (searchQuery.isNotBlank()) {
             employeeListData.filter {
-                it?.name?.contains(searchQuery, ignoreCase = true) == true
+                (it?.name?.contains(searchQuery, ignoreCase = true) == true) || ( it?.departmentName?.contains(searchQuery, ignoreCase = true)==true)
+
             }
         } else {
             employeeListData
@@ -626,8 +327,8 @@ fun dataItems(item: EmployeeList.Data?, onItemClick: (EmployeeList.Data?) -> Uni
             .background(colorResource(id = R.color.white), shape = RoundedCornerShape(7.dp))
             .border(
                 width = 1.dp,
-                color = colorResource(id = R.color.card_background),
-                shape = RoundedCornerShape(4.dp)
+                color = colorResource(id = R.color.border_color),
+                shape = RoundedCornerShape(4.dp),
             )
             .clickable { onItemClick(item) }
 
@@ -647,7 +348,7 @@ fun dataItems(item: EmployeeList.Data?, onItemClick: (EmployeeList.Data?) -> Uni
                 modifier = Modifier
                     .width(64.dp)
                     .height(64.dp)
-                    .clip(CircleShape),contentScale = ContentScale.Crop
+                    .clip(CircleShape), contentScale = ContentScale.Crop
             )
 
             Spacer(modifier = Modifier.height(10.dp))
@@ -699,9 +400,13 @@ fun dataItems(item: EmployeeList.Data?, onItemClick: (EmployeeList.Data?) -> Uni
 
             Spacer(modifier = Modifier.height(11.dp))
 
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 15.dp, end = 15.dp))
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 15.dp, end = 15.dp)
+            )
             {
 
 
@@ -722,11 +427,15 @@ fun dataItems(item: EmployeeList.Data?, onItemClick: (EmployeeList.Data?) -> Uni
                         ), shape = RoundedCornerShape(14.dp)
                     )
                     .clickable { }
-                ){
+                ) {
 
-                    Row(modifier = Modifier
-                        .fillMaxHeight()
-                        .fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
                         Image(
                             painter = painterResource(id = R.drawable.mail_logo),
                             contentDescription = "description",
@@ -735,9 +444,15 @@ fun dataItems(item: EmployeeList.Data?, onItemClick: (EmployeeList.Data?) -> Uni
                                 .width(18.dp)
                                 .padding(end = 4.dp)
                         )
-                        Text(text = "Mail",fontFamily= regular, fontWeight = FontWeight.Medium, fontSize = 14.sp, color = colorResource(
-                            id = R.color.blue
-                        ))
+                        Text(
+                            text = "Mail",
+                            fontFamily = regular,
+                            fontWeight = FontWeight.Medium,
+                            fontSize = 14.sp,
+                            color = colorResource(
+                                id = R.color.blue
+                            )
+                        )
 
                     }
                 }
@@ -761,11 +476,15 @@ fun dataItems(item: EmployeeList.Data?, onItemClick: (EmployeeList.Data?) -> Uni
                         ), shape = RoundedCornerShape(14.dp)
                     )
                     .clickable { }
-                ){
+                ) {
 
-                    Row(modifier = Modifier
-                        .fillMaxHeight()
-                        .fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
                         Image(
                             painter = painterResource(id = R.drawable.call_logo),
                             contentDescription = "description",
@@ -774,7 +493,12 @@ fun dataItems(item: EmployeeList.Data?, onItemClick: (EmployeeList.Data?) -> Uni
                                 .width(18.dp)
                                 .padding(end = 4.dp)
                         )
-                        Text(text = "Call", fontFamily = regular, fontSize = 14.sp, color = colorResource(id = R.color.blue))
+                        Text(
+                            text = "Call",
+                            fontFamily = regular,
+                            fontSize = 14.sp,
+                            color = colorResource(id = R.color.blue)
+                        )
 
                     }
                 }
@@ -782,3 +506,5 @@ fun dataItems(item: EmployeeList.Data?, onItemClick: (EmployeeList.Data?) -> Uni
         }
     }
 }
+
+

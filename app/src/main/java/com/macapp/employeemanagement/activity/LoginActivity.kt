@@ -1,8 +1,8 @@
 package com.macapp.employeemanagement.activity
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -16,47 +16,33 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Button
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
-import androidx.compose.material.TextFieldDefaults
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.google.gson.JsonObject
 import com.macapp.employeemanagement.R
 import com.macapp.employeemanagement.activity.ui.theme.EmployeeManagementTheme
+import com.macapp.employeemanagement.activity.ui.theme.PurpleGrey80
 import com.macapp.employeemanagement.components.Login
 import com.macapp.employeemanagement.components.LoginCredential
 import com.macapp.employeemanagement.components.MyTextFieldComponent
@@ -66,18 +52,15 @@ import com.macapp.employeemanagement.components.PasswordTextFieldComponent
 import com.macapp.employeemanagement.components.TitleImageComponent
 import com.macapp.employeemanagement.network.ApiService
 import com.macapp.employeemanagement.network.Response
-import com.macapp.employeemanagement.network.RetrofitApi
 import com.macapp.employeemanagement.preference.DataStoredPreference
 import com.macapp.employeemanagement.repository.LoginRepository
-import com.macapp.employeemanagement.ui.theme.componentShapes
 import com.macapp.employeemanagement.viewmodel.LoginViewModel
 import com.macapp.employeemanagement.viewmodel.ViewModelFactory
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import kotlin.math.log
 
 
 class LoginActivity : ComponentActivity() {
+    private val isLoading = mutableStateOf(false)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -95,6 +78,12 @@ class LoginActivity : ComponentActivity() {
 
 @Composable
 fun LoginScreen() {
+    val systemUiController = rememberSystemUiController()
+    val statusBarColor = PurpleGrey80 // Change this to the desired color
+
+    SideEffect {
+        systemUiController.setStatusBarColor(statusBarColor)
+    }
     val (email, setEmail) = remember { mutableStateOf("") }
     val (password, setPassword) = remember { mutableStateOf("") }
 
@@ -141,7 +130,7 @@ fun LoginScreen() {
                     onTextSelected = {
                         setPassword(it)
                     })
-                Spacer(modifier = Modifier.height(0.dp))
+                Spacer(modifier = Modifier.height(20.dp))
                 LoginButtonComponent(value = "Login", email, password)
 
             }
@@ -150,6 +139,7 @@ fun LoginScreen() {
 
 }
 
+@SuppressLint("UnrememberedMutableState")
 @Composable
 fun LoginButtonComponent(value: String, email: String, password: String) {
     val context = LocalContext.current
@@ -166,15 +156,28 @@ fun LoginButtonComponent(value: String, email: String, password: String) {
             .heightIn(48.dp),
         contentPadding = PaddingValues(),
         onClick = {
-            val jsonObject = JsonObject().apply {
-                addProperty("email", email)
-                addProperty("password", password)
-            }
-            coroutineScope.launch {
-                viewModel.login(jsonObject)
+            val emailPattern = "[a-zA-Z0-9._-]+@[a-z]+.+[a-z]+.+[a-z]+"
+            if (email.isEmpty()) {
+                Toast.makeText(context, "Email can't be Empty", Toast.LENGTH_LONG).show()
+            }else if (!email.matches(emailPattern.toRegex())){
+                Toast.makeText(context,"incorrect Email Format",Toast.LENGTH_LONG).show()
+            } else if (password.isEmpty()){
+                Toast.makeText(context,"Password can't be Empty",Toast.LENGTH_LONG).show()
+            }else if (password.length <=5){
+                Toast.makeText(context,"password should be atLeast 5 characters",Toast.LENGTH_LONG).show()
+            } else{
+                val jsonObject = JsonObject().apply {
+                    addProperty("email", email)
+                    addProperty("password", password)
+                }
+                coroutineScope.launch {
+                    viewModel.login(jsonObject)
 
+                }
             }
-        }
+            }
+
+
 
     )
     {
@@ -197,7 +200,16 @@ fun LoginButtonComponent(value: String, email: String, password: String) {
     }
     val loginState = viewModel.loginState.collectAsStateWithLifecycle()
     when (val result = loginState.value) {
-        is Response.Loading -> {}
+        is Response.Loading -> {
+//            Box(
+//                modifier = Modifier.fillMaxWidth()
+//            ) {
+//                CircularProgressIndicator(
+//                    color = colorResource(id = R.color.blue),
+//                    strokeWidth = 3.dp
+//                )
+//            }
+        }
 
         is Response.Success -> {
             val loginData = result.data!!.data!!.token
@@ -209,7 +221,7 @@ fun LoginButtonComponent(value: String, email: String, password: String) {
         }
 
         is Response.Error -> {
-           Toast.makeText(context,result.errorMessage, Toast.LENGTH_LONG).show()
+            Toast.makeText(context, "Please check your email and password", Toast.LENGTH_LONG).show()
         }
 
         else -> {}

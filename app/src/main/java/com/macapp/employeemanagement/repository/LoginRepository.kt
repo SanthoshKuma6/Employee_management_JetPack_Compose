@@ -37,8 +37,8 @@ class LoginRepository( val apiService: ApiService) {
     }
 
 
-    suspend fun deleteEmployeeData(token:String,employeeId:String):retrofit2.Response<LoginData> {
-        return apiService.deleteEmployeeData(token,employeeId)
+    suspend fun deleteEmployeeData(employeeId:String,token:String,):retrofit2.Response<LoginData> {
+        return apiService.deleteEmployeeData(employeeId,token)
 
     }
 

@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.app.DatePickerDialog
 import android.content.Context
 import android.content.Intent
+import android.graphics.Paint.Style
 import android.media.browse.MediaBrowser.ConnectionCallback
 import android.net.Uri
 import android.os.Bundle
@@ -33,12 +34,15 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Button
+import androidx.compose.material.ButtonColors
+import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.IconButton
 import androidx.compose.material.TextField
 import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -64,10 +68,13 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberImagePainter
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.macapp.employeemanagement.R
 import com.macapp.employeemanagement.activity.ui.theme.EmployeeManagementTheme
+import com.macapp.employeemanagement.activity.ui.theme.PurpleGrey80
 import com.macapp.employeemanagement.components.AddAddressFieldComponent
 import com.macapp.employeemanagement.components.AddEmployeeFieldComponent
+import com.macapp.employeemanagement.components.AddEmployeeFieldNumberComponent
 import com.macapp.employeemanagement.components.DropDownComponent
 import com.macapp.employeemanagement.components.NormalEditText
 import com.macapp.employeemanagement.network.ApiService
@@ -85,10 +92,14 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 
 class AddEmployeeActivity : ComponentActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             EmployeeManagementTheme {
+                val systemUiController = rememberSystemUiController()
+                val statusBarColor = PurpleGrey80
+                systemUiController.setStatusBarColor(statusBarColor)
                 AddNewEmployee()
             }
         }
@@ -98,6 +109,16 @@ class AddEmployeeActivity : ComponentActivity() {
 @Composable
 fun AddNewEmployee() {
 
+
+    val systemUiController = rememberSystemUiController()
+    val statusBarColor = PurpleGrey80 // Change this to the desired color
+
+    SideEffect {
+        systemUiController.setStatusBarColor(statusBarColor)
+    }
+//    val systemUiController = rememberSystemUiController()
+//    val statusBarColor = PurpleGrey80
+//    systemUiController.setStatusBarColor(statusBarColor)
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -113,6 +134,7 @@ fun AddNewEmployee() {
 
             ////profile image
 
+
             Column(
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -126,6 +148,7 @@ fun AddNewEmployee() {
                         imageUri = uri
 
                     }
+                Spacer(modifier = Modifier.height(30.dp))
                 Image(
                     modifier = Modifier
                         .clickable {
@@ -133,9 +156,11 @@ fun AddNewEmployee() {
                             imageUri?.let { imageUri }
 
                         }
-                        .size(104.dp, 104.dp)
-                        .padding(top = 19.dp)
+                        .size(width = 104.dp, height = 104.dp)
+                        .padding(top = 0.dp)
+                        .fillMaxSize()
                         .clip(CircleShape),
+
 
                     painter = imageUri?.let { rememberImagePainter(it) }
                         ?: painterResource(R.drawable.uploadempty),
@@ -159,9 +184,13 @@ fun AddNewEmployee() {
 
 @Composable
 fun GreetingSection() {
+    val systemUiController = rememberSystemUiController()
+    val statusBarColor = PurpleGrey80
+    systemUiController.setStatusBarColor(statusBarColor)
     val bold = FontFamily(Font(R.font.gothica1_regular))
-    val context= LocalContext.current
-    val onBackPressedCallback=(context as ComponentActivity).onBackPressedDispatcher
+    val semi_bold = FontFamily(Font(R.font.sf_pro_semibold))
+    val context = LocalContext.current
+    val onBackPressedCallback = (context as ComponentActivity).onBackPressedDispatcher
     Row(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically, modifier = Modifier
@@ -179,7 +208,9 @@ fun GreetingSection() {
                 modifier = Modifier.clickable { onBackPressedCallback.onBackPressed() }
             )
             Text(
-                text = "Back", modifier = Modifier.clickable { onBackPressedCallback.onBackPressed() }, style = TextStyle(
+                text = "Back",
+                modifier = Modifier.clickable { onBackPressedCallback.onBackPressed() },
+                style = TextStyle(
                     color = colorResource(id = R.color.blue)
 
                 ),
@@ -192,7 +223,7 @@ fun GreetingSection() {
                 .fillMaxWidth()
                 .heightIn(min = 0.dp), style = TextStyle(
                 fontSize = 17.sp, fontWeight = FontWeight.Normal, fontStyle = FontStyle.Normal
-            ), color = Color.Black, textAlign = TextAlign.Center, fontFamily = bold
+            ), color = colorResource(id = R.color.black), textAlign = TextAlign.Center, fontFamily = semi_bold
         )
 
 
@@ -200,9 +231,22 @@ fun GreetingSection() {
 }
 
 
-@SuppressLint("CoroutineCreationDuringComposition")
+@SuppressLint("CoroutineCreationDuringComposition", "UnrememberedMutableState")
 @Composable
 fun EmployeeDetails(uri: Uri?) {
+    val systemUiController = rememberSystemUiController()
+    val statusBarColor = PurpleGrey80
+    systemUiController.setStatusBarColor(statusBarColor)
+    val coroutineScope = rememberCoroutineScope()
+    val apiHit by remember {
+        mutableStateOf(false)
+    }
+    val viewModel: LoginViewModel = viewModel(
+        factory = ViewModelFactory(
+            LoginRepository(ApiService.NetworkClient.apiService)
+        )
+    )
+    val buttonClick= mutableStateOf(false)
     val context = LocalContext.current
     val (name, setName) = remember { mutableStateOf("") }
     val (departmentToken, setDepartment) = remember {
@@ -221,21 +265,8 @@ fun EmployeeDetails(uri: Uri?) {
         mutableStateOf("")
     }
     val selectedDate = remember { mutableStateOf("") }
-//    var requestBody = context.contentResolver.openInputStream(uri!!)
-//        ?.use { inputStream ->
-//            inputStream.readBytes()
-//                .toRequestBody("image/*".toMediaTypeOrNull())
-//        }
-    val builder = MultipartBody.Builder().setType(MultipartBody.FORM)
-    builder.addFormDataPart("name", name)
-    builder.addFormDataPart("email", email)
-    builder.addFormDataPart("department_token", departmentToken)
-    builder.addFormDataPart("date_of_birth", selectedDate.value)
-    builder.addFormDataPart("mobile_number", number)
-    builder.addFormDataPart("address", address)
-    builder.addFormDataPart("blood_group", bloodGroup)
-//    builder.addFormDataPart("photo", "photoPart", requestBody!!)
-    val addEmployee = builder.build()
+
+
 
 
     NormalEditText(value = stringResource(id = R.string.employee_title))
@@ -246,6 +277,8 @@ fun EmployeeDetails(uri: Uri?) {
         })
 
     NormalEditText(value = stringResource(id = R.string.enter_department_name))
+    Spacer(modifier = Modifier.heightIn(min = 12.dp))
+
     DropDownComponent(
         onTextSelected = {
             setDepartment(it)
@@ -260,13 +293,14 @@ fun EmployeeDetails(uri: Uri?) {
         })
 
     NormalEditText(value = stringResource(id = R.string.enter_contact_number_title))
-    AddEmployeeFieldComponent(
+    AddEmployeeFieldNumberComponent(
         labelValue = stringResource(id = R.string.enter_contact_number),
         onTextSelected = {
             setNumber(it)
         })
 
     NormalEditText(value = stringResource(id = R.string.dob_title))
+    Spacer(modifier = Modifier.heightIn(min = 12.dp))
 
     DateOutlinedTextField(
         label = "",
@@ -289,10 +323,83 @@ fun EmployeeDetails(uri: Uri?) {
         onTextSelected = {
             setAddress(it)
         })
-    Spacer(modifier = Modifier.heightIn(min = 20.dp))
-    AddEmployeeButton(addEmployee)
-    Spacer(modifier = Modifier.heightIn(min = 20.dp))
+    Spacer(modifier = Modifier.heightIn(min = 42.dp))
+//    AddEmployeeButton(addEmployee)
 
+    Button(modifier = Modifier
+        .fillMaxWidth()
+        .height(48.dp), colors = ButtonDefaults.buttonColors(colorResource(id = R.color.blue))
+       , onClick = {
+        val token = DataStoredPreference(context).getUSerData()["loginToken"]
+        val emailPattern = "[a-zA-Z0-9._-]+@[a-z]+.+[a-z]+.+[a-z]+"
+        if (email.isEmpty()) {
+            Toast.makeText(context, "email is should not be Empty", Toast.LENGTH_LONG).show()
+        }
+        else if (!email.matches(emailPattern.toRegex())){
+            Toast.makeText(context, "email is incorrect", Toast.LENGTH_LONG).show()
+
+        }else if (number.isEmpty()){
+            Toast.makeText(context, "email should not be Empty", Toast.LENGTH_LONG).show()
+
+        } else if (number.length<=9){
+            Toast.makeText(context,"Contact number is must 10 digit",Toast.LENGTH_LONG).show()
+        } else if (name.isEmpty()){
+            Toast.makeText(context, "name should not be Empty", Toast.LENGTH_LONG).show()
+
+        }
+
+                val requestBody = context.contentResolver.openInputStream(uri!!)
+                    ?.use { inputStream ->
+                        inputStream.readBytes()
+                            .toRequestBody("image/*".toMediaTypeOrNull())
+                    }
+                buttonClick.value=true
+                val builder = MultipartBody.Builder().setType(MultipartBody.FORM)
+                builder.addFormDataPart("name", name)
+                builder.addFormDataPart("email", email)
+                builder.addFormDataPart("department_token", departmentToken)
+                builder.addFormDataPart("date_of_birth", selectedDate.value)
+                builder.addFormDataPart("mobile_number", number)
+                builder.addFormDataPart("address", address)
+                builder.addFormDataPart("blood_group", bloodGroup)
+                builder.addFormDataPart("photo", "photoPart", requestBody!!)
+                val addEmployee = builder.build()
+                if (!apiHit) {
+                    coroutineScope.launch {
+                        viewModel.addEmployee(token.toString(), addEmployee)
+                        Log.d("addEmployee", "AddEmployeeButton: $token,$addEmployee")
+
+                    }
+        }
+    }) {
+            androidx.compose.material.Text(
+                text = "Add Employee",
+                fontSize = 18.sp,
+                color = Color.White,
+                fontWeight = FontWeight.Bold
+            )
+    }
+    Spacer(modifier = Modifier.heightIn(min = 60.dp))
+    val employeeState = viewModel.addEmployeeState.collectAsStateWithLifecycle()
+    when (val result = employeeState.value) {
+        is Response.Loading -> {
+
+        }
+
+        is Response.Success -> {
+            val intent = Intent(context, MainActivity()::class.java)
+            context.startActivity(intent)
+            Toast.makeText(context, "${result.data}", Toast.LENGTH_LONG).show()
+            Toast.makeText(context, "Successfully Added", Toast.LENGTH_LONG).show()
+
+        }
+
+        is Response.Error -> {
+            Toast.makeText(context, "${result.errorMessage}", Toast.LENGTH_LONG).show()
+        }
+
+        else -> {}
+    }
 }
 
 
@@ -314,16 +421,6 @@ fun AddEmployeeButton(requestBody: RequestBody) {
             .height(48.dp)
             .background(Color.Blue),
         onClick = {
-            val token = DataStoredPreference(context).getUSerData()["loginToken"]
-
-            if (!apiHit) {
-                coroutineScope.launch {
-                    viewModel.addEmployee(token.toString(), requestBody)
-                    Log.d("addEmployee", "AddEmployeeButton: $token,$requestBody")
-
-                }
-
-            }
 
         },
     ) {
@@ -335,23 +432,7 @@ fun AddEmployeeButton(requestBody: RequestBody) {
         )
     }
 
-    val employeeState = viewModel.addEmployeeState.collectAsStateWithLifecycle()
-    when (val result = employeeState.value) {
-        is Response.Loading -> {}
 
-        is Response.Success -> {
-            val intent = Intent(context, MainActivity()::class.java)
-            context.startActivity(intent)
-            Toast.makeText(context, "${result.data}", Toast.LENGTH_LONG).show()
-
-        }
-
-        is Response.Error -> {
-            Toast.makeText(context, "${result.errorMessage}", Toast.LENGTH_LONG).show()
-        }
-
-        else -> {}
-    }
 }
 
 @Composable
@@ -362,6 +443,7 @@ fun DateOutlinedTextField(
 ) {
     val expanded = remember { mutableStateOf(false) }
     val context = LocalContext.current
+    val regular=FontFamily(Font(R.font.sf_pro_regular))
 
     if (expanded.value) {
         DatePicker(
@@ -378,7 +460,7 @@ fun DateOutlinedTextField(
     TextField(
         modifier = Modifier
             .fillMaxWidth()
-            .border(1.dp, colorResource(id = R.color.light_white_text), RoundedCornerShape(4.dp)),
+            .border(1.dp, colorResource(id = R.color.border_color), RoundedCornerShape(4.dp)),
         value = selectedDate,
 
         colors = TextFieldDefaults.textFieldColors(

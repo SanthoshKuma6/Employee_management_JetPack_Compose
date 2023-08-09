@@ -44,7 +44,7 @@ interface ApiService {
 
     @DELETE("employee/{employeeId}")
     suspend fun deleteEmployeeData(
-        @Part("employeeId") employeeId: String,
+        @Path("employeeId") employeeId: String,
         @Header("Authorization") token: String,
     ): Response<LoginData>
 

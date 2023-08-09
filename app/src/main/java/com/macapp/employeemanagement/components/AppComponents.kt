@@ -141,42 +141,7 @@ fun TitleImageComponent() {
 
 }
 
-@Composable
-fun ImageComponent(onImageSelected: (Uri) -> Unit) {
 
-    var imageUri by remember {
-        mutableStateOf<Uri?>(null)
-    }
-    val launcher = rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent()) {uri: Uri? ->
-    imageUri=uri
-
-    }
-
-        Image(
-            modifier = Modifier
-                .clickable {
-                    launcher.launch("image/*")
-                    imageUri?.let { onImageSelected(it) }
-
-                }
-                .size(104.dp,104.dp).padding(top = 19.dp)
-                .clip(CircleShape),
-
-            painter = imageUri?.let { rememberImagePainter(it)  }
-                ?: painterResource(R.drawable.uploadempty),
-            contentDescription = "image uploader",
-            contentScale = ContentScale.Crop,
-
-
-
-        )
-
-
-
-
-
-
-}
 
 @Composable
 fun MyTextFieldComponent(
@@ -195,12 +160,12 @@ fun MyTextFieldComponent(
             .clip(componentShapes.small),
         placeholder = { Text(text = labelValue) },
         colors = TextFieldDefaults.outlinedTextFieldColors(
-            focusedBorderColor = Color.Black,
+            focusedBorderColor = colorResource(id = R.color.border_color),
             focusedLabelColor = Color.Black,
             cursorColor = Color.White,
             backgroundColor = Color.White
         ),
-        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next, keyboardType = KeyboardType.Email),
         singleLine = true,
         maxLines = 1,
         value = textValue.value,
@@ -237,7 +202,7 @@ fun PasswordTextFieldComponent(
             .clip(componentShapes.small),
         placeholder = { Text(text = labelValue) },
         colors = TextFieldDefaults.outlinedTextFieldColors(
-            focusedBorderColor = Color.Black,
+            focusedBorderColor = colorResource(id = R.color.border_color),
             focusedLabelColor = Color.Blue,
             cursorColor = Color.Blue,
             backgroundColor = Color.White,

@@ -1,5 +1,6 @@
 package com.macapp.employeemanagement.activity
 
+import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.Intent
 import android.os.Bundle
@@ -24,12 +25,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Divider
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -50,8 +52,10 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.macapp.employeemanagement.R
 import com.macapp.employeemanagement.activity.ui.theme.EmployeeManagementTheme
+import com.macapp.employeemanagement.activity.ui.theme.PurpleGrey80
 import com.macapp.employeemanagement.network.ApiService
 import com.macapp.employeemanagement.network.Response
 import com.macapp.employeemanagement.preference.DataStoredPreference
@@ -64,26 +68,31 @@ class ProfileDetailsActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
+
             EmployeeManagementTheme {
                 val intent = intent
                 if (intent.hasExtra("employeeList")) {
                     MyDetail(intentValue = intent)
                 }
                 MyDetail(intentValue = intent)
+                val systemUiController = rememberSystemUiController()
+                val statusBarColor = colorResource(id = R.color.white) // Change this to the desired color
 
+                SideEffect {
+                    systemUiController.setStatusBarColor(statusBarColor)
+                }
             }
         }
     }
 }
 
 
+@SuppressLint("UnrememberedMutableState")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MyDetail(intentValue: Intent) {
+    val isLoading = mutableStateOf(false)
 
-//    val systemUiController = rememberSystemUiController()
-//    val statusBarColor = white
-//    systemUiController.setStatusBarColor(statusBarColor)
 
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
@@ -92,13 +101,13 @@ fun MyDetail(intentValue: Intent) {
 
     val employeeName = intentValue.extras?.getString("name").toString()
     val dateBirth = intentValue.extras?.getString("dob").toString()
-    val employeeAddress = intentValue.extras?.getString("blood").toString()
+    val employeeBloodGroup = intentValue.extras?.getString("blood").toString()
     val email = intentValue.extras?.getString("email").toString()
-    val employeeBloodGroup = intentValue.extras?.getString("address").toString()
+    val employeeAddress = intentValue.extras?.getString("address").toString()
     val number = intentValue.extras?.getString("number").toString()
     val department = intentValue.extras?.getString("department").toString()
     val image = intentValue.extras?.getString("image").toString()
-    val token = intentValue.extras?.getString("token").toString()
+    val employeeIdToken = intentValue.extras?.getString("token").toString()
 
 
     //Font
@@ -116,6 +125,7 @@ fun MyDetail(intentValue: Intent) {
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
     ConstraintLayout(
         modifier = Modifier
+            .background(colorResource(id = R.color.white))
             .fillMaxSize()
             .nestedScroll(scrollBehavior.nestedScrollConnection),
     ) {
@@ -166,8 +176,8 @@ fun MyDetail(intentValue: Intent) {
             fontSize = 16.sp,
             modifier = Modifier
                 .constrainAs(backText) {
-                    top.linkTo(parent.top, margin = 30.dp)
-                    start.linkTo(back.end, margin = 10.dp)
+                    top.linkTo(parent.top, margin = 28.dp)
+                    start.linkTo(back.end, margin = 3.dp)
                 }
                 .clickable {
                     onBackPressed.onBackPressed()
@@ -192,7 +202,7 @@ fun MyDetail(intentValue: Intent) {
                     intent.putExtra("address", employeeAddress)
                     intent.putExtra("image", image)
                     intent.putExtra("blood", employeeBloodGroup)
-                    intent.putExtra("token", token)
+                    intent.putExtra("token", employeeIdToken)
                     context.startActivity(intent)
                 }
         )
@@ -246,7 +256,7 @@ fun MyDetail(intentValue: Intent) {
                 modifier = Modifier
                     .align(Alignment.Center)
                     .padding(start = 12.dp, top = 5.dp, bottom = 5.dp, end = 12.dp),
-                text = "Marketing Team",
+                text = department,
                 fontFamily = medium,
                 fontWeight = FontWeight.Medium,
                 fontSize = 11.sp,
@@ -257,7 +267,7 @@ fun MyDetail(intentValue: Intent) {
         }
 
         Divider(
-            color = colorResource(id = R.color.card_background),
+            color = colorResource(id = R.color.login_background),
             thickness = 2.dp,
             modifier = Modifier.constrainAs(view) {
                 top.linkTo(departmentName.bottom, margin = 10.dp)
@@ -346,7 +356,7 @@ fun MyDetail(intentValue: Intent) {
 
 
         Divider(
-            color = colorResource(id = R.color.card_background),
+            color = colorResource(id = R.color.login_background),
             thickness = 10.dp,
             modifier = Modifier.constrainAs(viewOne) {
                 top.linkTo(call.bottom, margin = 20.dp)
@@ -367,7 +377,7 @@ fun MyDetail(intentValue: Intent) {
         )
 
         Divider(
-            color = colorResource(id = R.color.card_background),
+            color = colorResource(id = R.color.login_background),
             thickness = 1.dp,
             modifier = Modifier.constrainAs(viewTwo) {
                 top.linkTo(basicInformation.bottom, margin = 10.dp)
@@ -455,14 +465,16 @@ fun MyDetail(intentValue: Intent) {
                 dialogBuilder
                     .setMessage("Are sure you want to Delete")
                     .setCancelable(false)
-                    .setNegativeButton("No") { dialog, _ ->
+                    .setNegativeButton(R.string.no) { dialog, _ ->
                         dialog.dismiss()
                     }
-                    .setPositiveButton("Yes") { dialog, _ ->
+                    .setPositiveButton(R.string.yes) { dialog, _ ->
                         coroutineScope.launch {
-                            viewModel.deleteEmployee(token,loginToken.toString())
-                            Log.d("deleteEmployee", "MyDetail: $token,$loginToken")
+                            viewModel.deleteEmployee(employeeIdToken, loginToken.toString())
+                            Log.d("deleteEmployee", "MyDetail: $employeeIdToken,$loginToken")
                         }
+                        val intent = Intent(context, MainActivity::class.java)
+                        context.startActivity(intent)
                         dialog.dismiss()
                     }
                     .show()
@@ -490,18 +502,4 @@ fun MyDetail(intentValue: Intent) {
         }
     }
 
-    val deleteState = viewModel.deleteEmployeeState.collectAsStateWithLifecycle()
-    when (val result = deleteState.value) {
-        is Response.Loading -> {}
-
-        is Response.Success -> {
-            val intent = Intent(context, MainActivity::class.java)
-            context.startActivity(intent)
-        }
-
-        is Response.Error -> {
-            Toast.makeText(context,result.errorMessage,Toast.LENGTH_LONG).show()
-
-        }
-    }
 }

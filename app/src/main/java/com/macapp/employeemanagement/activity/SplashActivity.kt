@@ -6,11 +6,14 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.macapp.employeemanagement.R
 import com.macapp.employeemanagement.activity.ui.theme.EmployeeManagementTheme
+import com.macapp.employeemanagement.activity.ui.theme.PurpleGrey80
 import com.macapp.employeemanagement.preference.DataStoredPreference
 import kotlinx.coroutines.delay
 
@@ -27,10 +30,12 @@ class SplashActivity : ComponentActivity() {
 
 @Composable
 fun SplashScreen() {
-//    val systemUiController = rememberSystemUiController()
-//    val statusBarColor = background
-//    systemUiController.setStatusBarColor(statusBarColor)
+    val systemUiController = rememberSystemUiController()
+    val statusBarColor = PurpleGrey80 // Change this to the desired color
 
+    SideEffect {
+        systemUiController.setStatusBarColor(statusBarColor)
+    }
 
     val semiBold = FontFamily(Font(R.font.sf_pro_semibold))
     val context = LocalContext.current

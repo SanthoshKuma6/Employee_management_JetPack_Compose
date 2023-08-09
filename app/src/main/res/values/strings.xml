@@ -32,4 +32,8 @@
     <string name="title_activity_splash">SplashActivity</string>
     <string name="title_activity_profile_details">ProfileDetailsActivity</string>
     <string name="title_activity_edit_profile_details">EditProfileDetailsActivity</string>
+    <string name="no"><font fgcolor='#4079E5'>No</font></string>
+    <string name="yes"><font fgcolor='#4079E5'>Yes</font></string>
+
+
 </resources>

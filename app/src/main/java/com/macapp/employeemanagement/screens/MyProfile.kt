@@ -38,12 +38,16 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.macapp.employeemanagement.R
 import com.macapp.employeemanagement.activity.LoginActivity
 import com.macapp.employeemanagement.preference.DataStoredPreference
 
 @Composable
 fun MyProfile() {
+    val systemUiController = rememberSystemUiController()
+    val statusBarColor = colorResource(id = R.color.white)
+    systemUiController.setStatusBarColor(statusBarColor)
     val bold = FontFamily(Font(R.font.gothica1_regular))
     val regular = FontFamily(Font(R.font.sf_pro_regular))
     val semiBold = FontFamily(Font(R.font.sf_pro_semibold))
@@ -52,8 +56,8 @@ fun MyProfile() {
     ConstraintLayout(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
-            .padding(top = 30.dp, start = 16.dp, end = 16.dp)
+            .background(Color.White).padding(top = 30.dp)
+        
     ) {
         val titleProfile = createRef()
         val logoutText = createRef()
@@ -76,6 +80,7 @@ fun MyProfile() {
         val addressTitle = createRef()
         val address = createRef()
         val guideline = createGuidelineFromStart(fraction = 0.5f)
+
         val forthDivider = createRef()
 
 
@@ -85,8 +90,8 @@ fun MyProfile() {
             modifier = Modifier
                 .constrainAs(titleProfile)
                 {
-                    start.linkTo(parent.start,)
-                    top.linkTo(parent.top)
+                    start.linkTo(parent.start, margin = 16.dp)
+                    top.linkTo(parent.top, )
                 },
             style = TextStyle(
                 fontSize = 25.sp,
@@ -111,11 +116,11 @@ fun MyProfile() {
                     val dialog = AlertDialog.Builder(context)
                     dialog.setMessage("Are you sure want exit?")
                     dialog.setCancelable(false)
-                    dialog.setNegativeButton("No") { dialog, _ ->
+                    dialog.setNegativeButton(R.string.no) { dialog, _ ->
                         dialog.dismiss()
                     }
                     dialog
-                        .setPositiveButton("Logout") { dialog, _ ->
+                        .setPositiveButton(R.string.yes) { dialog, _ ->
                             DataStoredPreference(context).saveUSerData("")
                             val intent = Intent(context, LoginActivity::class.java)
                             context.startActivity(intent)
@@ -133,7 +138,7 @@ fun MyProfile() {
         )
 
             Image(modifier=Modifier.constrainAs(logoutIcon){
-                top.linkTo(logoutText.top)
+                top.linkTo(logoutText.top, margin = 13.dp)
                 bottom.linkTo(logoutText.bottom)
                 end.linkTo(logoutText.start, margin = 10.dp)
             },
@@ -155,7 +160,7 @@ fun MyProfile() {
                 .constrainAs(profilePicture) {
                     start.linkTo(parent.start)
                     end.linkTo(parent.end)
-                    top.linkTo(logoutText.bottom, margin = 26.dp)
+                    top.linkTo(logoutIcon.bottom, margin = 26.dp)
                 }
                 .size(90.dp, 90.dp), contentScale = ContentScale.Crop)
 
@@ -171,7 +176,7 @@ fun MyProfile() {
                 fontWeight = FontWeight.ExtraBold,
                 fontStyle = FontStyle.Normal,
 
-                ), fontFamily = bold
+                ), fontFamily = semiBold
         )
         Card(
             modifier = Modifier
@@ -190,7 +195,8 @@ fun MyProfile() {
                 fontSize = 12.sp,
                 modifier = Modifier.padding(8.dp),
 
-                color = colorResource(id = R.color.light_white_text)
+                color = colorResource(id = R.color.light_white_text),
+                fontFamily = medium
             )
         }
 
@@ -198,17 +204,17 @@ fun MyProfile() {
             modifier = Modifier
                 .padding()
                 .constrainAs(divider) {
-                    start.linkTo(parent.start)
-                    end.linkTo(parent.end)
-                    top.linkTo(department.bottom, margin = 30.dp)
-                }, color = colorResource(id = R.color.divider_color)
+                    start.linkTo(parent.start,margin = 26.dp)
+                    end.linkTo(parent.end,margin = 26.dp)
+                    top.linkTo(department.bottom, margin = 21.dp)
+                }, color = colorResource(id = R.color.login_background)
         )
 
         Icon(
             painter = painterResource(id = R.drawable.mail_1),
             contentDescription = "",
             modifier = Modifier
-                .padding(top = 20.dp)
+                .padding(top = 25.dp)
                 .constrainAs(emailIcon) {
                     start.linkTo(parent.start, margin = 30.dp)
                     top.linkTo(divider.bottom,)
@@ -222,13 +228,14 @@ fun MyProfile() {
                     top.linkTo(divider.bottom)
                 },
             color = colorResource(id = R.color.light_white_text),
+            fontFamily = regular
         )
         Icon(
             painter = painterResource(id = R.drawable.call_1),
             contentDescription = "",
             modifier = Modifier.constrainAs(mobileNumberIcon) {
                 start.linkTo(parent.start, margin = 30.dp)
-                top.linkTo(emailIcon.bottom, margin = 10.dp)
+                top.linkTo(emailIcon.bottom, margin = 13.dp)
             })
 
         Text(
@@ -238,6 +245,7 @@ fun MyProfile() {
                 top.linkTo(email.bottom, margin = 10.dp)
             },
             color = colorResource(id = R.color.light_white_text),
+            fontFamily = regular
         )
 
         Divider(
@@ -246,13 +254,13 @@ fun MyProfile() {
                 .constrainAs(secondDivided) {
                     start.linkTo(parent.start)
                     end.linkTo(parent.end)
-                    top.linkTo(mobileNumber.bottom, margin = 30.dp)
+                    top.linkTo(mobileNumber.bottom, margin = 26.dp)
                 }, color = colorResource(id = R.color.login_background)
         )
 
         Text(
             text = "Basic Information", modifier = Modifier.constrainAs(basicInformation) {
-                start.linkTo(parent.start)
+                start.linkTo(parent.start, margin = 16.dp)
                 top.linkTo(secondDivided.bottom, margin = 10.dp)
             }, style = TextStyle(
                 fontSize = 20.sp,
@@ -264,41 +272,41 @@ fun MyProfile() {
         Divider(
             modifier = Modifier
                 .constrainAs(thirdDivided) {
-                    start.linkTo(parent.start)
-                    end.linkTo(parent.end)
-                    top.linkTo(basicInformation.bottom, margin = 20.dp)
-                }, color = colorResource(id = R.color.divider_color)
+                    start.linkTo(parent.start,margin = 16.dp)
+                    end.linkTo(parent.end, margin = 16.dp)
+                    top.linkTo(basicInformation.bottom, margin = 14.dp)
+                }, color = colorResource(id = R.color.login_background)
         )
 
         Text(
             text = "Date of Birth",
             modifier = Modifier.constrainAs(dateOfBirthTitle) {
-                start.linkTo(parent.start)
+                start.linkTo(parent.start, margin = 16.dp)
                 top.linkTo(thirdDivided.bottom, margin = 10.dp)
             },
             color = colorResource(id = R.color.light_white_text),
             style = TextStyle(fontSize = 16.sp),
-            fontWeight = FontWeight.Normal
+            fontWeight = FontWeight.Normal,fontFamily = regular
         )
         Text(
             text = "Blood Group",
             modifier = Modifier.constrainAs(bloodGroupTitle) {
-                start.linkTo(parent.start)
+                start.linkTo(parent.start,margin = 16.dp)
                 top.linkTo(dateOfBirthTitle.bottom, margin = 10.dp)
             },
             color = colorResource(id = R.color.light_white_text),
             style = TextStyle(fontSize = 16.sp),
-            fontWeight = FontWeight.Normal
+            fontWeight = FontWeight.Normal,fontFamily = regular
         )
         Text(
             text = "Address",
             modifier = Modifier.constrainAs(addressTitle) {
-                start.linkTo(parent.start)
+                start.linkTo(parent.start,margin = 16.dp)
                 top.linkTo(bloodGroupTitle.bottom, margin = 10.dp)
             },
             color = colorResource(id = R.color.light_white_text),
             style = TextStyle(fontSize = 16.sp),
-            fontWeight = FontWeight.Normal
+            fontWeight = FontWeight.Normal,fontFamily = regular
         )
         Text(
             text = "30 June 2000", modifier = Modifier.constrainAs(dateOfBirth) {
@@ -308,7 +316,7 @@ fun MyProfile() {
                 fontSize = 14.sp,
                 fontWeight = FontWeight.ExtraBold,
                 fontStyle = FontStyle.Normal
-            ), fontFamily = bold
+            ), fontFamily = bold,
         )
         Text(
             text = "A Negative", modifier = Modifier.constrainAs(bloodGroup) {
