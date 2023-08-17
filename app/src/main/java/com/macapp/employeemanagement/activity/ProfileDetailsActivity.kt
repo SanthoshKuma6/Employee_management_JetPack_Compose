@@ -92,13 +92,9 @@ class ProfileDetailsActivity : ComponentActivity() {
 @Composable
 fun MyDetail(intentValue: Intent) {
     val isLoading = mutableStateOf(false)
-
-
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val onBackPressed = (context as ComponentActivity).onBackPressedDispatcher
-
-
     val employeeName = intentValue.extras?.getString("name").toString()
     val dateBirth = intentValue.extras?.getString("dob").toString()
     val employeeBloodGroup = intentValue.extras?.getString("blood").toString()
@@ -108,20 +104,16 @@ fun MyDetail(intentValue: Intent) {
     val department = intentValue.extras?.getString("department").toString()
     val image = intentValue.extras?.getString("image").toString()
     val employeeIdToken = intentValue.extras?.getString("token").toString()
-
-
     //Font
     val bold = FontFamily(Font(R.font.sf_pro_bold))
     val regular = FontFamily(Font(R.font.sf_pro_regular))
     val semiBold = FontFamily(Font(R.font.sf_pro_semibold))
     val medium = FontFamily(Font(R.font.sf_pro_medium))
-
     val viewModel: LoginViewModel = viewModel(
         factory = ViewModelFactory(
             LoginRepository(ApiService.NetworkClient.apiService)
         )
     )
-
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
     ConstraintLayout(
         modifier = Modifier
@@ -130,8 +122,6 @@ fun MyDetail(intentValue: Intent) {
             .nestedScroll(scrollBehavior.nestedScrollConnection),
     ) {
         val guideline = createGuidelineFromStart(fraction = 0.5f)
-
-
         val back = createRef()
         val backText = createRef()
         val edit = createRef()
